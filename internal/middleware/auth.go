@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"strings"
-	"turnos-medicos/internal/utils"
+	"turnos-medicos/internal/pkg"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,7 +14,7 @@ func RequireAuth() gin.HandlerFunc {
 
 		//verificar que exista
 		if authHeader == "" {
-			utils.Unauthorized(c, "No autorizado")
+			pkg.Unauthorized(c, "No autorizado")
 			c.Abort()
 			return
 		}
@@ -22,16 +22,16 @@ func RequireAuth() gin.HandlerFunc {
 		//verificar formato: "Bearer token"
 		parts := strings.Split(authHeader, " ")
 		if len(parts) != 2 || parts[0] != "Bearer" {
-			utils.Unauthorized(c, "No autorizado")
+			pkg.Unauthorized(c, "No autorizado")
 			c.Abort()
 			return
 		}
 
 		tokenString := parts[1]
 		//validar token
-		claims, err := utils.ValidarToken(tokenString)
+		claims, err := pkg.ValidarToken(tokenString)
 		if err != nil {
-			utils.Unauthorized(c, "No autorizado")
+			pkg.Unauthorized(c, "No autorizado")
 			c.Abort()
 			return
 		}

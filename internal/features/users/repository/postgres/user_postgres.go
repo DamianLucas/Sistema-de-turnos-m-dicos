@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"turnos-medicos/internal/features/users/models"
-	"turnos-medicos/internal/utils"
+	"turnos-medicos/internal/pkg"
 )
 
 type UserPostgresRepository struct {
@@ -100,19 +100,19 @@ func (r *UserPostgresRepository) ObtenerUsuarioPorID(ctx context.Context, userID
 		&user.UpdatedAt,
 	)
 	if err == sql.ErrNoRows {
-		return nil, utils.ErrUsuarioNoEncontrado
+		return nil, pkg.ErrUsuarioNoEncontrado
 	}
 
 	if err != nil {
 		return nil, err
 	}
 
-	return &user, err
+	return &user, nil
 }
 
 // ObtenerUsuarioPorEmail
 func (r *UserPostgresRepository) ObtenerUsuarioPorEmail(ctx context.Context, email string) (*models.User, error) {
-	query := `SELECT id, nombre, apellido, email, rol, activo, created_at, updated_at FROM users WHERE email = $1`
+	query := `SELECT id, nombre, apellido, email, password, rol, activo, created_at, updated_at FROM users WHERE email = $1`
 
 	var user models.User
 
@@ -121,6 +121,7 @@ func (r *UserPostgresRepository) ObtenerUsuarioPorEmail(ctx context.Context, ema
 		&user.Nombre,
 		&user.Apellido,
 		&user.Email,
+		&user.Password,
 		&user.Rol,
 		&user.Activo,
 		&user.CreatedAt,
@@ -128,7 +129,7 @@ func (r *UserPostgresRepository) ObtenerUsuarioPorEmail(ctx context.Context, ema
 	)
 
 	if err == sql.ErrNoRows {
-		return nil, utils.ErrUsuarioNoEncontrado
+		return nil, pkg.ErrUsuarioNoEncontrado
 	}
 
 	if err != nil {
@@ -227,7 +228,7 @@ func (r *UserPostgresRepository) DesactivarUsuario(ctx context.Context, userID i
 		return err
 	}
 	if rowsAffected == 0 {
-		return utils.ErrUsuarioNoEncontrado
+		return pkg.ErrUsuarioNoEncontrado
 	}
 
 	return nil

@@ -2,6 +2,7 @@ package routes
 
 import (
 	"turnos-medicos/internal/bootstrap"
+	"turnos-medicos/internal/features/users/models"
 	"turnos-medicos/internal/middleware"
 
 	"github.com/gin-gonic/gin"
@@ -31,7 +32,7 @@ func SetupRoutes(r *gin.Engine, h *bootstrap.Handlers) {
 		// USERS (solo admin)
 		// =========================
 		users := private.Group("/users")
-		users.Use(middleware.RequireRol("admin"))
+		users.Use(middleware.RequireRol(models.RolAdmin))
 		{
 			users.POST("/", h.User.CrearUsuario)
 			users.GET("/", h.User.ListarUsuariosActivos)

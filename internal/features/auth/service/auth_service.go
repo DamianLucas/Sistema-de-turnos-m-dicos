@@ -5,7 +5,7 @@ import (
 	"errors"
 	"turnos-medicos/internal/features/auth/dto"
 	"turnos-medicos/internal/features/users/repository"
-	"turnos-medicos/internal/utils"
+	"turnos-medicos/internal/pkg"
 )
 
 type AuthService interface {
@@ -25,21 +25,21 @@ func NewAuthService(repo repository.UserRepository) AuthService {
 func (s *authService) Login(ctx context.Context, email string, password string) (*dto.LoginResponse, error) {
 	user, err := s.repo.ObtenerUsuarioPorEmail(ctx, email)
 	if err != nil {
-		if errors.Is(err, utils.ErrUsuarioNoEncontrado) {
-			return nil, utils.ErrCredencialesInvalidas
+		if errors.Is(err, pkg.ErrUsuarioNoEncontrado) {
+			return nil, pkg.ErrCredencialesInvalidas
 		}
 		return nil, err
 	}
 
 	if !user.Activo {
-		return nil, utils.ErrUsuarioInactivo
+		return nil, pkg.ErrUsuarioInactivo
 	}
 
-	if !utils.VerificarPassword(password, user.Password) {
-		return nil, utils.ErrCredencialesInvalidas
+	if !pkg.VerificarPassword(password, user.Password) {
+		return nil, pkg.ErrCredencialesInvalidas
 	}
 
-	token, err := utils.GenerarToken(user.ID, user.Rol)
+	token, err := pkg.GenerarToken(user.ID, user.Rol)
 	if err != nil {
 		return nil, errors.New("error al generar token")
 	}

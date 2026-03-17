@@ -7,7 +7,7 @@ import (
 	"turnos-medicos/internal/features/users/dto"
 	"turnos-medicos/internal/features/users/models"
 	"turnos-medicos/internal/features/users/repository"
-	"turnos-medicos/internal/utils"
+	"turnos-medicos/internal/pkg"
 )
 
 type UserService interface {
@@ -37,11 +37,11 @@ func (s *userService) CrearUsuario(ctx context.Context, req dto.CrearUsuarioRequ
 	//validar email unico
 	existeEmail, err := s.repo.ObtenerUsuarioPorEmail(ctx, req.Email)
 	if err == nil && existeEmail != nil {
-		return nil, utils.ErrEmailDuplicado
+		return nil, pkg.ErrEmailDuplicado
 	}
 
 	//hash password
-	hashedPassword, err := utils.HashPassword(req.Password)
+	hashedPassword, err := pkg.HashPassword(req.Password)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +64,7 @@ func (s *userService) CrearUsuario(ctx context.Context, req dto.CrearUsuarioRequ
 
 func (s *userService) ObtenerUsuarioPorID(ctx context.Context, id int64) (*models.User, error) {
 	if id <= 0 {
-		return nil, utils.ErrIDInvalido
+		return nil, pkg.ErrIDInvalido
 	}
 
 	user, err := s.repo.ObtenerUsuarioPorID(ctx, id)
@@ -73,7 +73,7 @@ func (s *userService) ObtenerUsuarioPorID(ctx context.Context, id int64) (*model
 	}
 
 	if !user.Activo {
-		return nil, utils.ErrUsuarioInactivo
+		return nil, pkg.ErrUsuarioInactivo
 	}
 
 	return user, err
@@ -90,7 +90,7 @@ func (s *userService) ListarUsuariosActivos(ctx context.Context) ([]*models.User
 
 func (s *userService) ActualizarUsuario(ctx context.Context, id int64, req dto.ActualizarUsuarioRequest) (*models.User, error) {
 	if id <= 0 {
-		return nil, utils.ErrIDInvalido
+		return nil, pkg.ErrIDInvalido
 	}
 
 	user, err := s.repo.ObtenerUsuarioPorID(ctx, id)
@@ -99,7 +99,7 @@ func (s *userService) ActualizarUsuario(ctx context.Context, id int64, req dto.A
 	}
 
 	if !user.Activo {
-		return nil, utils.ErrUsuarioInactivo
+		return nil, pkg.ErrUsuarioInactivo
 	}
 
 	// solo actualizar campos que vienen en el request
@@ -113,7 +113,7 @@ func (s *userService) ActualizarUsuario(ctx context.Context, id int64, req dto.A
 		user.Email = req.Email
 	}
 	if req.Password != "" {
-		hashedPassword, err := utils.HashPassword(req.Password)
+		hashedPassword, err := pkg.HashPassword(req.Password)
 		if err != nil {
 			return nil, err
 		}
@@ -131,20 +131,8 @@ func (s *userService) ActualizarUsuario(ctx context.Context, id int64, req dto.A
 }
 
 func (s *userService) DesactivarUsuario(ctx context.Context, id int64) error {
-	user, err := s.repo.ObtenerUsuarioPorID(ctx, id)
-	if err != nil {
-		return err
-	}
-
-	//si ya esta inactivo no se hace nada
-	if !user.Activo {
-		return nil
-	}
-
 	if err := s.repo.DesactivarUsuario(ctx, id); err != nil {
 		return fmt.Errorf("error desactivando usuario: %w", err)
 	}
-
 	return nil
-
 }

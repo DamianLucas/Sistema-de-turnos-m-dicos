@@ -4,7 +4,7 @@ import (
 	"errors"
 	"turnos-medicos/internal/features/auth/dto"
 	"turnos-medicos/internal/features/auth/service"
-	"turnos-medicos/internal/utils"
+	"turnos-medicos/internal/pkg"
 
 	"github.com/gin-gonic/gin"
 )
@@ -21,19 +21,19 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	var req dto.LoginRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.BadRequest(c, err.Error())
+		pkg.BadRequest(c, err.Error())
 		return
 	}
 
 	resp, err := h.service.Login(c.Request.Context(), req.Email, req.Password)
 	if err != nil {
-		if errors.Is(err, utils.ErrCredencialesInvalidas) {
-			utils.Unauthorized(c, "Email o Password invalido")
+		if errors.Is(err, pkg.ErrCredencialesInvalidas) {
+			pkg.Unauthorized(c, "Email o Password invalido")
 			return
 		}
-		utils.InternalError(c)
+		pkg.InternalError(c)
 		return
 	}
 
-	utils.Success(c, resp)
+	pkg.Success(c, resp)
 }

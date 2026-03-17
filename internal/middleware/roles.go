@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"turnos-medicos/internal/features/users/models"
-	"turnos-medicos/internal/utils"
+	"turnos-medicos/internal/pkg"
 
 	"github.com/gin-gonic/gin"
 )
@@ -12,14 +12,14 @@ func RequireRol(rolesPermitidos ...models.Rol) gin.HandlerFunc {
 
 		rolCtx, exist := c.Get("rol")
 		if !exist {
-			utils.Unauthorized(c, "No autorizado")
+			pkg.Unauthorized(c, "No autorizado")
 			c.Abort()
 			return
 		}
 
 		rolUsuario, ok := rolCtx.(models.Rol)
 		if !ok {
-			utils.Unauthorized(c, "Rol invalido")
+			pkg.Unauthorized(c, "Rol invalido")
 			c.Abort()
 			return
 		}
@@ -33,7 +33,7 @@ func RequireRol(rolesPermitidos ...models.Rol) gin.HandlerFunc {
 		}
 
 		// si no coincide ningún rol
-		utils.Forbidden(c, "No tiene permisos para acceder a este recurso")
+		pkg.Forbidden(c, "No tiene permisos para acceder a este recurso")
 		c.Abort()
 	}
 }

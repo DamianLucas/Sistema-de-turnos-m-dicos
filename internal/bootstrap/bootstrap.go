@@ -1,6 +1,7 @@
 package bootstrap
 
 import (
+	"context"
 	"database/sql"
 	handlerAuth "turnos-medicos/internal/features/auth/handlers"
 	handlerUser "turnos-medicos/internal/features/users/handlers"
@@ -27,6 +28,9 @@ func Bootstrap(db *sql.DB) *Handlers {
 	//handlers
 	userHandler := handlerUser.NewUserHandler(userService)
 	authHandler := handlerAuth.NewAuthHandler(authService)
+
+	//Seed
+	SeedAdminUser(context.Background(), userRepo)
 
 	return &Handlers{
 		User: userHandler,
