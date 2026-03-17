@@ -81,6 +81,34 @@ func (h *UserHandler) ListarUsuariosActivos(c *gin.Context) {
 	utils.Success(c, usersActive)
 }
 
+// ActualizarUsuarios
+func (h *UserHandler) ActualizarUsuario(c *gin.Context) {
+	idStr := c.Param("id")
+	userID, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		utils.BadRequest(c, "ID invalido")
+		return
+	}
+
+	var req dto.ActualizarUsuarioRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.BadRequest(c, "Datos invalidos")
+		return
+	}
+
+	user, err := h.service.ActualizarUsuario(c.Request.Context(), userID, req)
+	if err != nil {
+		if errors.Is(err, utils.ErrUsuarioNoEncontrado) {
+			utils.NotFound(c, err.Error())
+			return
+		}
+		utils.InternalError(c)
+		return
+	}
+
+	utils.Success(c, user)
+}
+
 // DesactivarUsuario
 func (h *UserHandler) DesactivarUsuario(c *gin.Context) {
 	idStr := c.Param("id")

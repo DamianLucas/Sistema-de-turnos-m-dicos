@@ -2,24 +2,42 @@ package routes
 
 import (
 	"turnos-medicos/internal/bootstrap"
+	"turnos-medicos/internal/middleware"
 
 	"github.com/gin-gonic/gin"
 )
 
 func SetupRoutes(r *gin.Engine, h *bootstrap.Handlers) {
 
-	// v1 := r.Group("/api/v1")
+	v1 := r.Group("/api/v1")
 
-	// // rutas públicas (sin RequiereAuth)
-	// auth := v1.Group("/auth")
-	// {
-	// 	auth.POST("/login", auth.Handlers.Login)
-	// }
+	// =========================
+	// AUTH (PÚBLICO)
+	// =========================
 
-	// //rutas privadas
-	// users := v1.Group("/users")
-	// users.Use(middleware.RequireAuth())
-	// {
-	// 	users.POST("/", users.)
-	// }
+	auth := v1.Group("/auth")
+	{
+		auth.POST("/login", h.Auth.Login)
+	}
+
+	// =========================
+	// RUTAS PRIVADAS (JWT)
+	// =========================
+
+	private := v1.Group("/")
+	private.Use(middleware.RequireAuth())
+	{
+		// =========================
+		// USERS (solo admin)
+		// =========================
+		users := private.Group("/users")
+		users.Use(middleware.RequireRol("admin"))
+		{
+			users.POST("/", h.User.CrearUsuario)
+			users.GET("/", h.User.ListarUsuariosActivos)
+			users.GET("/:id", h.User.ObtenerUsuarioPorID)
+			users.PUT("/:id", h.User.ActualizarUsuario)
+			users.PATCH("/:id/desactivar", h.User.DesactivarUsuario)
+		}
+	}
 }

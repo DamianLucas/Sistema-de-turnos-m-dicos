@@ -184,7 +184,7 @@ func (r *UserPostgresRepository) ObtenerUsuarioPorRol(ctx context.Context, userR
 
 // ActualizarUsuario
 func (r *UserPostgresRepository) ActualizarUsuario(ctx context.Context, u *models.User) error {
-	query := `UPDATE users SET nombre = $2, apellido = $3, email = $4, password = $5, rol = $6, activo = $7, updated_at = NOW() WHERE id = $1 `
+	query := `UPDATE users SET nombre = $2, apellido = $3, email = $4, password = $5, rol = $6, activo = $7, updated_at = NOW() WHERE id = $1`
 
 	resultado, err := r.db.ExecContext(
 		ctx,
@@ -199,11 +199,11 @@ func (r *UserPostgresRepository) ActualizarUsuario(ctx context.Context, u *model
 	)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("error actualizando usuario: %w", err)
 	}
 	rowsAffected, err := resultado.RowsAffected()
 	if err != nil {
-		return err
+		return fmt.Errorf("error obteniendo filas afectadas: %w", err)
 	}
 	if rowsAffected == 0 {
 		return sql.ErrNoRows

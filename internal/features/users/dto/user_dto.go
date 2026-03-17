@@ -9,3 +9,11 @@ type CrearUsuarioRequest struct {
 	Password string     `json:"password" binding:"required,min=8"`
 	Rol      models.Rol `json:"rol" binding:"required,oneof=admin medico administrativo"`
 }
+
+type ActualizarUsuarioRequest struct {
+	Nombre   string     `json:"nombre"`
+	Apellido string     `json:"apellido"`
+	Email    string     `json:"email" binding:"omitempty,email"`
+	Password string     `json:"password" binding:"omitempty,min=8"`
+	Rol      models.Rol `json:"rol" binding:"omitempty,oneof=admin medico administrativo"`
+}
