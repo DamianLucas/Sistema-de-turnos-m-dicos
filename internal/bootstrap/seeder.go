@@ -22,7 +22,7 @@ func SeedAdminUser(ctx context.Context, userService services.UserService) {
 		return
 	}
 
-	createUser := dto.CrearUsuarioRequest{
+	createUserAdmin := dto.CrearUsuarioRequest{
 		Nombre:   "Admin",
 		Apellido: "Sistema",
 		Email:    email,
@@ -30,7 +30,7 @@ func SeedAdminUser(ctx context.Context, userService services.UserService) {
 		Rol:      models.RolAdmin,
 	}
 
-	_, err := userService.CrearUsuario(ctx, createUser)
+	_, err := userService.CrearUsuario(ctx, createUserAdmin)
 	if err != nil {
 
 		if errors.Is(err, pkg.ErrEmailDuplicado) {
