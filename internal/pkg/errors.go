@@ -12,4 +12,9 @@ var (
 	ErrUsuarioInactivo       = errors.New("usuario inactivo")
 	ErrTurnoNoDisponible     = errors.New("turno no disponible")
 	ErrIDInvalido            = errors.New("id invalido")
+
+	ErrMedicoNoEncontrado = errors.New("medico no encontrado")
+
+	ErrMatriculaDuplicada = errors.New("matricula ya esta registrada")
+	ErrErrorPersistencia  = errors.New("error interno de persistencia")
 )

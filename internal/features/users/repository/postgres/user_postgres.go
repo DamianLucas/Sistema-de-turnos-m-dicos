@@ -55,7 +55,7 @@ func (r *UserPostgresRepository) ListarUsuariosActivos(ctx context.Context) ([]*
 	}
 	defer rows.Close()
 
-	var users []*models.User
+	users := make([]*models.User, 0, 20)
 
 	for rows.Next() {
 		var user models.User
