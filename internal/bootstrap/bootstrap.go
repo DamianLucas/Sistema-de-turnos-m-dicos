@@ -30,7 +30,7 @@ func Bootstrap(db *sql.DB) *Handlers {
 	authHandler := handlerAuth.NewAuthHandler(authService)
 
 	//Seed
-	SeedAdminUser(context.Background(), userRepo)
+	SeedAdminUser(context.Background(), userService)
 
 	return &Handlers{
 		User: userHandler,

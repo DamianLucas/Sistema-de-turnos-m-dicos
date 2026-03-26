@@ -2,14 +2,17 @@ package bootstrap
 
 import (
 	"context"
+	"errors"
 	"log"
 	"os"
+
+	"turnos-medicos/internal/features/users/dto"
 	"turnos-medicos/internal/features/users/models"
-	"turnos-medicos/internal/features/users/repository"
+	"turnos-medicos/internal/features/users/services"
 	"turnos-medicos/internal/pkg"
 )
 
-func SeedAdminUser(ctx context.Context, repo repository.UserRepository) {
+func SeedAdminUser(ctx context.Context, userService services.UserService) {
 
 	email := os.Getenv("ADMIN_EMAIL")
 	password := os.Getenv("ADMIN_PASSWORD")
@@ -19,37 +22,25 @@ func SeedAdminUser(ctx context.Context, repo repository.UserRepository) {
 		return
 	}
 
-	// Verificar si el admin ya existe
-	_, err := repo.ObtenerUsuarioPorEmail(ctx, email)
-	if err == nil {
-		log.Println("Usuario admin ya existe. Seed omitido.")
-		return
-	}
-
-	// 2. Hashear password
-	hashedPassword, err := pkg.HashPassword(password)
-	if err != nil {
-		log.Println("Error hasheando password:", err)
-		return
-	}
-
-	// 3. Crear usuario admin
-	admin := &models.User{
+	createUser := dto.CrearUsuarioRequest{
 		Nombre:   "Admin",
 		Apellido: "Sistema",
 		Email:    email,
-		Password: hashedPassword,
+		Password: password,
 		Rol:      models.RolAdmin,
-		Activo:   true,
 	}
 
-	//Guardamos
-	err = repo.CrearUsuario(ctx, admin)
+	_, err := userService.CrearUsuario(ctx, createUser)
 	if err != nil {
+
+		if errors.Is(err, pkg.ErrEmailDuplicado) {
+			log.Println("Usuario admin ya existe. Seed omitido.")
+			return
+		}
+
 		log.Println("Error creando usuario admin:", err)
 		return
 	}
 
 	log.Println("Usuario admin creado correctamente.")
-
 }
