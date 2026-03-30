@@ -62,12 +62,12 @@ func (s *userService) CrearUsuario(ctx context.Context, req dto.CrearUsuarioRequ
 	return user, nil
 }
 
-func (s *userService) ObtenerUsuarioPorID(ctx context.Context, id int64) (*models.User, error) {
-	if id <= 0 {
+func (s *userService) ObtenerUsuarioPorID(ctx context.Context, userID int64) (*models.User, error) {
+	if userID <= 0 {
 		return nil, pkg.ErrIDInvalido
 	}
 
-	user, err := s.repo.ObtenerUsuarioPorID(ctx, id)
+	user, err := s.repo.ObtenerUsuarioPorID(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -93,45 +93,45 @@ func (s *userService) ActualizarUsuario(ctx context.Context, id int64, req dto.A
 		return nil, pkg.ErrIDInvalido
 	}
 
-	user, err := s.repo.ObtenerUsuarioPorID(ctx, id)
+	userActual, err := s.repo.ObtenerUsuarioPorID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	if !user.Activo {
+	if !userActual.Activo {
 		return nil, pkg.ErrUsuarioInactivo
 	}
 
 	// solo actualizar campos que vienen en el request
 	if req.Nombre != "" {
-		user.Nombre = req.Nombre
+		userActual.Nombre = req.Nombre
 	}
 	if req.Apellido != "" {
-		user.Apellido = req.Apellido
+		userActual.Apellido = req.Apellido
 	}
 	if req.Email != "" {
-		user.Email = req.Email
+		userActual.Email = req.Email
 	}
 	if req.Password != "" {
 		hashedPassword, err := pkg.HashPassword(req.Password)
 		if err != nil {
 			return nil, err
 		}
-		user.Password = hashedPassword
+		userActual.Password = hashedPassword
 	}
 	if req.Rol != "" {
-		user.Rol = req.Rol
+		userActual.Rol = req.Rol
 	}
 
-	if err := s.repo.ActualizarUsuario(ctx, user); err != nil {
+	if err := s.repo.ActualizarUsuario(ctx, userActual); err != nil {
 		return nil, err
 	}
 
-	return user, nil
+	return userActual, nil
 }
 
-func (s *userService) DesactivarUsuario(ctx context.Context, id int64) error {
-	if err := s.repo.DesactivarUsuario(ctx, id); err != nil {
+func (s *userService) DesactivarUsuario(ctx context.Context, userID int64) error {
+	if err := s.repo.DesactivarUsuario(ctx, userID); err != nil {
 		return fmt.Errorf("error desactivando usuario: %w", err)
 	}
 	return nil

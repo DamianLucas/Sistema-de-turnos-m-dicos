@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	modelsMedico "turnos-medicos/internal/features/medicos/models"
-	modelsUser "turnos-medicos/internal/features/users/models"
+	medicoModel "turnos-medicos/internal/features/medicos/models"
+	userModel "turnos-medicos/internal/features/users/models"
 	"turnos-medicos/internal/pkg"
 
 	"github.com/lib/pq"
@@ -21,7 +21,7 @@ func NewMedicoPostgresRepository(db *sql.DB) *MedicoPostgresRepository {
 
 //Crear metodos de Medicos con sus Query SQL
 
-func (r *MedicoPostgresRepository) CrearMedico(ctx context.Context, u *modelsUser.User, m *modelsMedico.Medico) error {
+func (r *MedicoPostgresRepository) CrearMedico(ctx context.Context, u *userModel.User, m *medicoModel.Medico) error {
 
 	//Todo pertenece a una misma transaccion
 	tx, err := r.db.BeginTx(ctx, nil)
@@ -93,13 +93,13 @@ func (r *MedicoPostgresRepository) CrearMedico(ctx context.Context, u *modelsUse
 	return nil
 }
 
-func (r *MedicoPostgresRepository) ObtenerMedicoPorID(ctx context.Context, medicoID int64) (*modelsMedico.Medico, error) {
+func (r *MedicoPostgresRepository) ObtenerMedicoPorID(ctx context.Context, medicoID int64) (*medicoModel.Medico, error) {
 	query := `SELECT m.id, m.user_id, u.nombre, u.apellido, u.email, u.activo, m.matricula, m.especialidad, created_at, updated_at
 			FROM medicos m
 			INNER JOIN users u ON u.id = m.user_id
 			WHERE m.id = $1`
 
-	var medico modelsMedico.Medico
+	var medico medicoModel.Medico
 
 	err := r.db.QueryRowContext(ctx, query, medicoID).Scan(
 		&medico.ID,
@@ -126,13 +126,13 @@ func (r *MedicoPostgresRepository) ObtenerMedicoPorID(ctx context.Context, medic
 
 }
 
-func (r *MedicoPostgresRepository) ObtenerMedicoPorMatricula(ctx context.Context, matricula string) (*modelsMedico.Medico, error) {
+func (r *MedicoPostgresRepository) ObtenerMedicoPorMatricula(ctx context.Context, matricula string) (*medicoModel.Medico, error) {
 	query := `SELECT m.id, m.user_id, u.nombre, u.apellido, u.email, u.activo, m.matricula, m.especialidad, created_at, updated_at
 			FROM medicos m
 			INNER JOIN users u ON u.id = m.user_id
 			WHERE m.matricula = $1`
 
-	var medico modelsMedico.Medico
+	var medico medicoModel.Medico
 
 	err := r.db.QueryRowContext(ctx, query, matricula).Scan(
 		&medico.ID,
@@ -158,7 +158,7 @@ func (r *MedicoPostgresRepository) ObtenerMedicoPorMatricula(ctx context.Context
 	return &medico, nil
 }
 
-func (r *MedicoPostgresRepository) ListarMedicosActivos(ctx context.Context) ([]*modelsMedico.Medico, error) {
+func (r *MedicoPostgresRepository) ListarMedicosActivos(ctx context.Context) ([]*medicoModel.Medico, error) {
 	query := `
 	SELECT
 		m.id, m.user_id, m.matricula, m.especialidad, m.created_at, m.updated_at,
@@ -174,10 +174,10 @@ func (r *MedicoPostgresRepository) ListarMedicosActivos(ctx context.Context) ([]
 	}
 	defer rows.Close()
 
-	medicos := make([]*modelsMedico.Medico, 0, 20)
+	medicos := make([]*medicoModel.Medico, 0, 20)
 
 	for rows.Next() {
-		medico := &modelsMedico.Medico{}
+		medico := &medicoModel.Medico{}
 
 		err := rows.Scan(
 			&medico.ID,
@@ -203,7 +203,7 @@ func (r *MedicoPostgresRepository) ListarMedicosActivos(ctx context.Context) ([]
 	return medicos, nil
 }
 
-func (r *MedicoPostgresRepository) ListarMedicosPorEspecialidad(ctx context.Context, especialidad string) ([]*modelsMedico.Medico, error) {
+func (r *MedicoPostgresRepository) ListarMedicosPorEspecialidad(ctx context.Context, especialidad string) ([]*medicoModel.Medico, error) {
 	query := `
 	SELECT
 		m.id, m.user_id, m.matricula, m.especialidad, m.created_at, m.updated_at,
@@ -219,10 +219,10 @@ func (r *MedicoPostgresRepository) ListarMedicosPorEspecialidad(ctx context.Cont
 	}
 	defer rows.Close()
 
-	medicos := make([]*modelsMedico.Medico, 0, 20)
+	medicos := make([]*medicoModel.Medico, 0, 20)
 
 	for rows.Next() {
-		medico := &modelsMedico.Medico{}
+		medico := &medicoModel.Medico{}
 
 		err := rows.Scan(
 			&medico.ID,
@@ -252,7 +252,7 @@ func (r *MedicoPostgresRepository) ListarMedicosPorEspecialidad(ctx context.Cont
 
 }
 
-func (r *MedicoPostgresRepository) ActualizarMedico(ctx context.Context, m *modelsMedico.Medico) error {
+func (r *MedicoPostgresRepository) ActualizarMedico(ctx context.Context, m *medicoModel.Medico) error {
 	tx, err := r.db.BeginTx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("error iniciando transacción: %w", err)
@@ -322,11 +322,11 @@ func (r *MedicoPostgresRepository) ActualizarMedico(ctx context.Context, m *mode
 
 }
 
-func (r *MedicoPostgresRepository) DesactivarMedico(ctx context.Context, id int64) error {
+func (r *MedicoPostgresRepository) DesactivarMedico(ctx context.Context, medicoID int64) error {
 	query := `UPDATE users SET activo = false, updated_at = NOW() 
 			WHERE id = (SELECT user_id FROM medicos WHERE id = $1)`
 
-	resultado, err := r.db.ExecContext(ctx, query, id)
+	resultado, err := r.db.ExecContext(ctx, query, medicoID)
 
 	if err != nil {
 		return err

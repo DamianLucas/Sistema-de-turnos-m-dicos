@@ -14,7 +14,11 @@ var (
 	ErrIDInvalido            = errors.New("id invalido")
 
 	ErrMedicoNoEncontrado = errors.New("medico no encontrado")
+	ErrMedicoInactivo     = errors.New("medico inctivo")
 
-	ErrMatriculaDuplicada = errors.New("matricula ya esta registrada")
-	ErrErrorPersistencia  = errors.New("error interno de persistencia")
+	ErrMatriculaDuplicada    = errors.New("matricula ya esta registrada")
+	ErrMatriculaRequerida    = errors.New("matricula requerida")
+	ErrEspecialidadRequerida = errors.New("especialidad requerida")
+
+	ErrErrorPersistencia = errors.New("error interno de persistencia")
 )

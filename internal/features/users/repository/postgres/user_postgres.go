@@ -41,6 +41,33 @@ func (r *UserPostgresRepository) CrearUsuario(ctx context.Context, u *models.Use
 
 }
 
+// ObtenerUsuarioPorID
+func (r *UserPostgresRepository) ObtenerUsuarioPorID(ctx context.Context, userID int64) (*models.User, error) {
+	query := `SELECT id, nombre, apellido, email, rol, activo, created_at, updated_at FROM users WHERE id = $1`
+
+	var user models.User
+
+	err := r.db.QueryRowContext(ctx, query, userID).Scan(
+		&user.ID,
+		&user.Nombre,
+		&user.Apellido,
+		&user.Email,
+		&user.Rol,
+		&user.Activo,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+	if err == sql.ErrNoRows {
+		return nil, pkg.ErrUsuarioNoEncontrado
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
 // ListarUsuarios
 func (r *UserPostgresRepository) ListarUsuariosActivos(ctx context.Context) ([]*models.User, error) {
 
@@ -74,106 +101,6 @@ func (r *UserPostgresRepository) ListarUsuariosActivos(ctx context.Context) ([]*
 		}
 
 		users = append(users, &user)
-	}
-
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-
-	return users, nil
-}
-
-// ObtenerUsuarioPorID
-func (r *UserPostgresRepository) ObtenerUsuarioPorID(ctx context.Context, userID int64) (*models.User, error) {
-	query := `SELECT id, nombre, apellido, email, rol, activo, created_at, updated_at FROM users WHERE id = $1`
-
-	var user models.User
-
-	err := r.db.QueryRowContext(ctx, query, userID).Scan(
-		&user.ID,
-		&user.Nombre,
-		&user.Apellido,
-		&user.Email,
-		&user.Rol,
-		&user.Activo,
-		&user.CreatedAt,
-		&user.UpdatedAt,
-	)
-	if err == sql.ErrNoRows {
-		return nil, pkg.ErrUsuarioNoEncontrado
-	}
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &user, nil
-}
-
-// ObtenerUsuarioPorEmail
-func (r *UserPostgresRepository) ObtenerUsuarioPorEmail(ctx context.Context, email string) (*models.User, error) {
-	query := `SELECT id, nombre, apellido, email, password, rol, activo, created_at, updated_at FROM users WHERE email = $1`
-
-	var user models.User
-
-	err := r.db.QueryRowContext(ctx, query, email).Scan(
-		&user.ID,
-		&user.Nombre,
-		&user.Apellido,
-		&user.Email,
-		&user.Password,
-		&user.Rol,
-		&user.Activo,
-		&user.CreatedAt,
-		&user.UpdatedAt,
-	)
-
-	if err == sql.ErrNoRows {
-		return nil, pkg.ErrUsuarioNoEncontrado
-	}
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &user, err
-}
-
-// ObtenerUsuarioPorRol
-func (r *UserPostgresRepository) ObtenerUsuarioPorRol(ctx context.Context, userRol models.Rol) ([]*models.User, error) {
-
-	query := `
-        SELECT id, nombre, apellido, email, rol, activo, created_at, updated_at
-        FROM users
-        WHERE rol = $1
-    `
-
-	rows, err := r.db.QueryContext(ctx, query, userRol)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	users := make([]*models.User, 0)
-
-	for rows.Next() {
-		user := &models.User{}
-
-		err := rows.Scan(
-			&user.ID,
-			&user.Nombre,
-			&user.Apellido,
-			&user.Email,
-			&user.Rol,
-			&user.Activo,
-			&user.CreatedAt,
-			&user.UpdatedAt,
-		)
-		if err != nil {
-			return nil, err
-		}
-
-		users = append(users, user)
 	}
 
 	if err := rows.Err(); err != nil {
@@ -232,4 +159,81 @@ func (r *UserPostgresRepository) DesactivarUsuario(ctx context.Context, userID i
 	}
 
 	return nil
+}
+
+// --------------------------------------------------------------------------------------------------------
+// ObtenerUsuarioPorEmail
+// se usa internamente en el service de auth para el login y en el service de medicos para verificar email duplicado.
+// No es un endpoint que el admin vaya a consumir.
+func (r *UserPostgresRepository) ObtenerUsuarioPorEmail(ctx context.Context, email string) (*models.User, error) {
+	query := `SELECT id, nombre, apellido, email, password, rol, activo, created_at, updated_at FROM users WHERE email = $1`
+
+	var user models.User
+
+	err := r.db.QueryRowContext(ctx, query, email).Scan(
+		&user.ID,
+		&user.Nombre,
+		&user.Apellido,
+		&user.Email,
+		&user.Password,
+		&user.Rol,
+		&user.Activo,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+
+	if err == sql.ErrNoRows {
+		return nil, pkg.ErrUsuarioNoEncontrado
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, err
+}
+
+// ObtenerUsuarioPorRol
+// se usa internamente cuando necesitás listar médicos o administrativos, pero para eso tenés endpoints específicos en medicos
+func (r *UserPostgresRepository) ObtenerUsuarioPorRol(ctx context.Context, userRol models.Rol) ([]*models.User, error) {
+
+	query := `
+        SELECT id, nombre, apellido, email, rol, activo, created_at, updated_at
+        FROM users
+        WHERE rol = $1
+    `
+
+	rows, err := r.db.QueryContext(ctx, query, userRol)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	users := make([]*models.User, 0)
+
+	for rows.Next() {
+		user := &models.User{}
+
+		err := rows.Scan(
+			&user.ID,
+			&user.Nombre,
+			&user.Apellido,
+			&user.Email,
+			&user.Rol,
+			&user.Activo,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		users = append(users, user)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return users, nil
 }

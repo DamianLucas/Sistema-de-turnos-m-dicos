@@ -16,5 +16,5 @@ type MedicoRepository interface {
 	ListarMedicosPorEspecialidad(ctx context.Context, especialidad string) ([]*modelsMedico.Medico, error)
 
 	ActualizarMedico(ctx context.Context, m *modelsMedico.Medico) error
-	DesactivarMedico(ctx context.Context, id int64) error
+	DesactivarMedico(ctx context.Context, medicoID int64) error
 }
