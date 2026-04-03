@@ -41,4 +41,25 @@ func SetupRoutes(r *gin.Engine, h *bootstrap.Handlers) {
 			users.PATCH("/:id/desactivar", h.User.DesactivarUsuario)
 		}
 	}
+
+	// =========================
+	// MEDICOS
+	// =========================
+
+	medicos := private.Group("/medicos")
+	medicos.Use(middleware.RequireRol(models.RolAdmin, models.RolAdministrativo))
+	{
+		medicos.POST("/", h.Medico.CrearMedico)
+
+		// handler unificado que se usa para obtener medicos por especialidad y medicos activos con los queryParams
+		medicos.GET("/", h.Medico.ListarMedicos)
+
+		medicos.GET("/matricula/:matricula", h.Medico.ObtenerMedicoPorMatricula)
+		medicos.GET("/:id", h.Medico.ObtenerMedicoPorID)
+
+		medicos.PUT("/:id", h.Medico.ActualizarMedico)
+		medicos.PATCH("/:id/desactivar", h.Medico.DesactivarMedico)
+		medicos.PATCH("/:id/activar", h.Medico.ActivarMedico)
+	}
+
 }

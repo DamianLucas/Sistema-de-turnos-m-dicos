@@ -22,6 +22,7 @@ type MedicoService interface {
 	ListarMedicosPorEspecialidad(ctx context.Context, especialidad string) ([]*medicoModel.Medico, error)
 	ActualizarMedico(ctx context.Context, medicoID int64, req dto.ActualizarMedicoRequest) (*medicoModel.Medico, error)
 	DesactivarMedico(ctx context.Context, medicoID int64) error
+	ActivarMedico(ctx context.Context, medicoID int64) error
 }
 
 type medicoService struct {
@@ -84,6 +85,7 @@ func (s *medicoService) CrearMedico(ctx context.Context, req dto.CrearMedicoRequ
 	medico.Apellido = user.Apellido
 	medico.Email = user.Email
 	medico.Activo = user.Activo
+	medico.UserID = user.ID
 
 	return medico, nil
 
@@ -189,4 +191,8 @@ func (s *medicoService) DesactivarMedico(ctx context.Context, medicoID int64) er
 		return fmt.Errorf("error desactivando medico: %w", err)
 	}
 	return nil
+}
+
+func (s *medicoService) ActivarMedico(ctx context.Context, medicoID int64) error {
+	return s.medicoRepo.ActivarMedico(ctx, medicoID)
 }

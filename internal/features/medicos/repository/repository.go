@@ -17,4 +17,5 @@ type MedicoRepository interface {
 
 	ActualizarMedico(ctx context.Context, m *modelsMedico.Medico) error
 	DesactivarMedico(ctx context.Context, medicoID int64) error
+	ActivarMedico(ctx context.Context, medicoID int64) error
 }

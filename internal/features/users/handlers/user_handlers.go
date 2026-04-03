@@ -35,7 +35,7 @@ func (h *UserHandler) CrearUsuario(c *gin.Context) {
 	user, err := h.service.CrearUsuario(c.Request.Context(), req)
 	if err != nil {
 		if errors.Is(err, pkg.ErrEmailDuplicado) {
-			pkg.BadRequest(c, err.Error())
+			pkg.BadRequest(c, pkg.ErrEmailDuplicado.Error())
 			return
 		}
 		pkg.InternalError(c)
@@ -58,7 +58,7 @@ func (h *UserHandler) ObtenerUsuarioPorID(c *gin.Context) {
 	userID, err := h.service.ObtenerUsuarioPorID(c.Request.Context(), id)
 	if err != nil {
 		if errors.Is(err, pkg.ErrUsuarioNoEncontrado) {
-			pkg.NotFound(c, err.Error())
+			pkg.BadRequest(c, pkg.ErrUsuarioNoEncontrado.Error())
 			return
 		}
 		pkg.InternalError(c)
@@ -99,7 +99,7 @@ func (h *UserHandler) ActualizarUsuario(c *gin.Context) {
 	user, err := h.service.ActualizarUsuario(c.Request.Context(), userID, req)
 	if err != nil {
 		if errors.Is(err, pkg.ErrUsuarioNoEncontrado) {
-			pkg.NotFound(c, err.Error())
+			pkg.BadRequest(c, pkg.ErrUsuarioNoEncontrado.Error())
 			return
 		}
 		pkg.InternalError(c)
@@ -121,7 +121,7 @@ func (h *UserHandler) DesactivarUsuario(c *gin.Context) {
 	err = h.service.DesactivarUsuario(c.Request.Context(), userID)
 	if err != nil {
 		if errors.Is(err, pkg.ErrUsuarioNoEncontrado) {
-			pkg.NotFound(c, err.Error())
+			pkg.BadRequest(c, pkg.ErrUsuarioNoEncontrado.Error())
 			return
 		}
 

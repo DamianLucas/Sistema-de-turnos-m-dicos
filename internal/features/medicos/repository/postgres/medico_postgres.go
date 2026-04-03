@@ -94,7 +94,7 @@ func (r *MedicoPostgresRepository) CrearMedico(ctx context.Context, u *userModel
 }
 
 func (r *MedicoPostgresRepository) ObtenerMedicoPorID(ctx context.Context, medicoID int64) (*medicoModel.Medico, error) {
-	query := `SELECT m.id, m.user_id, u.nombre, u.apellido, u.email, u.activo, m.matricula, m.especialidad, created_at, updated_at
+	query := `SELECT m.id, m.user_id, u.nombre, u.apellido, u.email, u.activo, m.matricula, m.especialidad, m.created_at, m.updated_at
 			FROM medicos m
 			INNER JOIN users u ON u.id = m.user_id
 			WHERE m.id = $1`
@@ -127,7 +127,7 @@ func (r *MedicoPostgresRepository) ObtenerMedicoPorID(ctx context.Context, medic
 }
 
 func (r *MedicoPostgresRepository) ObtenerMedicoPorMatricula(ctx context.Context, matricula string) (*medicoModel.Medico, error) {
-	query := `SELECT m.id, m.user_id, u.nombre, u.apellido, u.email, u.activo, m.matricula, m.especialidad, created_at, updated_at
+	query := `SELECT m.id, m.user_id, u.nombre, u.apellido, u.email, u.activo, m.matricula, m.especialidad, m.created_at, m.updated_at
 			FROM medicos m
 			INNER JOIN users u ON u.id = m.user_id
 			WHERE m.matricula = $1`
@@ -210,7 +210,7 @@ func (r *MedicoPostgresRepository) ListarMedicosPorEspecialidad(ctx context.Cont
 		u.nombre, u.apellido, u.email, u.activo
 	FROM medicos m
 	INNER JOIN users u ON u.id = m.user_id
-	WHERE m.especialidad = $1
+	WHERE m.especialidad = $1 AND u.activo = true
 	`
 
 	rows, err := r.db.QueryContext(ctx, query, especialidad)
@@ -336,6 +336,33 @@ func (r *MedicoPostgresRepository) DesactivarMedico(ctx context.Context, medicoI
 	if err != nil {
 		return err
 	}
+	if rowsAffected == 0 {
+		return pkg.ErrMedicoNoEncontrado
+	}
+
+	return nil
+}
+
+func (r *MedicoPostgresRepository) ActivarMedico(ctx context.Context, medicoID int64) error {
+
+	query := `
+		UPDATE users u
+		SET activo = true, updated_at = NOW()
+		FROM medicos m
+		WHERE m.id = $1
+		AND u.id = m.user_id
+	`
+
+	resultado, err := r.db.ExecContext(ctx, query, medicoID)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := resultado.RowsAffected()
+	if err != nil {
+		return err
+	}
+
 	if rowsAffected == 0 {
 		return pkg.ErrMedicoNoEncontrado
 	}
