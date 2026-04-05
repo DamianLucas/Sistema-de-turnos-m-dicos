@@ -4,10 +4,6 @@ import (
 	"time"
 )
 
-/*
-si bien los campos como Nombre, Apellido , Email y Activo estan en la tabla user los agregue
-para no tener que hacer JOIN cada vez que necesite mostrar un médico completo.
-*/
 type Medico struct {
 	ID           int64     `json:"id"`
 	UserID       int64     `json:"user_id"`

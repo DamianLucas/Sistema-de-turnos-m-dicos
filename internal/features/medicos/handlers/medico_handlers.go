@@ -67,6 +67,10 @@ func (h *MedicoHandler) ObtenerMedicoPorID(c *gin.Context) {
 			pkg.NotFound(c, err.Error())
 			return
 		}
+		if errors.Is(err, pkg.ErrMedicoInactivo) {
+			pkg.NotFound(c, err.Error())
+			return
+		}
 		pkg.InternalError(c)
 		return
 	}
@@ -143,6 +147,10 @@ func (h *MedicoHandler) ActualizarMedico(c *gin.Context) {
 	if err != nil {
 		if errors.Is(err, pkg.ErrMedicoNoEncontrado) {
 			pkg.NotFound(c, pkg.ErrMedicoNoEncontrado.Error())
+			return
+		}
+		if errors.Is(err, pkg.ErrMedicoInactivo) {
+			pkg.NotFound(c, pkg.ErrMedicoInactivo.Error())
 			return
 		}
 		pkg.InternalError(c)

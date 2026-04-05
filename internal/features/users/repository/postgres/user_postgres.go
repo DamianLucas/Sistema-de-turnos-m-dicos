@@ -194,7 +194,7 @@ func (r *UserPostgresRepository) ObtenerUsuarioPorEmail(ctx context.Context, ema
 }
 
 // ObtenerUsuarioPorRol
-// se usa internamente cuando necesitás listar médicos o administrativos, pero para eso tenés endpoints específicos en medicos
+// se usa internamente cuando se necesita listar médicos o administrativos, pero para eso tenés endpoints específicos en medicos
 func (r *UserPostgresRepository) ObtenerUsuarioPorRol(ctx context.Context, userRol models.Rol) ([]*models.User, error) {
 
 	query := `

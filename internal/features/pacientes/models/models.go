@@ -13,6 +13,7 @@ type Paciente struct {
 	Direccion       string    `json:"direccion"`
 	ObraSocial      string    `json:"obra_social"`
 	MedicoTratante  *int64    `json:"medico_tratante_id"`
+	Activo          bool      `json:"activo"`
 	CreatedAt       time.Time `json:"created_at"`
 	UpdatedAt       time.Time `json:"updated_at"`
 }

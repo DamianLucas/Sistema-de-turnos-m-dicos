@@ -168,6 +168,10 @@ func (s *medicoService) ActualizarMedico(ctx context.Context, medicoID int64, re
 		medicoActual.Apellido = req.Apellido
 	}
 
+	if req.Especialidad != "" {
+		medicoActual.Especialidad = req.Especialidad
+	}
+
 	if req.Email != "" && req.Email != medicoActual.Email {
 		existeEmail, err := s.userRepo.ObtenerUsuarioPorEmail(ctx, req.Email)
 		if err != nil && !errors.Is(err, pkg.ErrUsuarioNoEncontrado) {
