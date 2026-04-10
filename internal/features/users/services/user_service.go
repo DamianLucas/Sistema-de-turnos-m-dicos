@@ -76,14 +76,14 @@ func (s *userService) ObtenerUsuarioPorID(ctx context.Context, userID int64) (*m
 		return nil, pkg.ErrUsuarioInactivo
 	}
 
-	return user, err
+	return user, nil
 
 }
 
 func (s *userService) ListarUsuariosActivos(ctx context.Context) ([]*models.User, error) {
 	users, err := s.repo.ListarUsuariosActivos(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("error en servicio al listar usuarios activos: %w", err)
+		return nil, fmt.Errorf("%w: %v", pkg.ErrListarUsuariosActivos, err)
 	}
 	return users, nil
 }
@@ -131,8 +131,22 @@ func (s *userService) ActualizarUsuario(ctx context.Context, id int64, req dto.A
 }
 
 func (s *userService) DesactivarUsuario(ctx context.Context, userID int64) error {
-	if err := s.repo.DesactivarUsuario(ctx, userID); err != nil {
-		return fmt.Errorf("error desactivando usuario: %w", err)
+	if userID <= 0 {
+		return pkg.ErrIDInvalido
 	}
+
+	user, err := s.repo.ObtenerUsuarioPorID(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	if !user.Activo {
+		return pkg.ErrUsuarioInactivo
+	}
+
+	if err := s.repo.DesactivarUsuario(ctx, userID); err != nil {
+		return fmt.Errorf("%w: %v", pkg.ErrDesactivarUsuario, err)
+	}
+
 	return nil
 }

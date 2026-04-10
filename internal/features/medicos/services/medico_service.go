@@ -125,7 +125,7 @@ func (s *medicoService) ObtenerMedicoPorMatricula(ctx context.Context, matricula
 func (s *medicoService) ListarMedicosActivos(ctx context.Context) ([]*medicoModel.Medico, error) {
 	medicos, err := s.medicoRepo.ListarMedicosActivos(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("error en servicio al listar medicos activos: %w", err)
+		return nil, fmt.Errorf("%w: %w", pkg.ErrListarMedicosActivos, err)
 	}
 	return medicos, nil
 }
@@ -190,10 +190,23 @@ func (s *medicoService) ActualizarMedico(ctx context.Context, medicoID int64, re
 }
 
 func (s *medicoService) DesactivarMedico(ctx context.Context, medicoID int64) error {
+	if medicoID <= 0 {
+		return pkg.ErrIDInvalido
+	}
+
+	medico, err := s.medicoRepo.ObtenerMedicoPorID(ctx, medicoID)
+	if err != nil {
+		return err
+	}
+
+	if !medico.Activo {
+		return pkg.ErrMedicoInactivo
+	}
 
 	if err := s.medicoRepo.DesactivarMedico(ctx, medicoID); err != nil {
-		return fmt.Errorf("error desactivando medico: %w", err)
+		return fmt.Errorf("%w: %v", pkg.ErrDesactivarMedico, err)
 	}
+
 	return nil
 }
 
