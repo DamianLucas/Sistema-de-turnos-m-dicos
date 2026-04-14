@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"turnos-medicos/internal/features/medicos/dto"
@@ -11,6 +12,7 @@ import (
 	userModel "turnos-medicos/internal/features/users/models"
 
 	medicoRepo "turnos-medicos/internal/features/medicos/repository"
+	pacienteRepo "turnos-medicos/internal/features/pacientes/repository"
 	userRepo "turnos-medicos/internal/features/users/repository"
 )
 
@@ -26,14 +28,18 @@ type MedicoService interface {
 }
 
 type medicoService struct {
-	medicoRepo medicoRepo.MedicoRepository
-	userRepo   userRepo.UserRepository
+	medicoRepo   medicoRepo.MedicoRepository
+	userRepo     userRepo.UserRepository
+	pacienteRepo pacienteRepo.PacienteRepository
+	db           *sql.DB
 }
 
-func NewMedicoService(medicoRepo medicoRepo.MedicoRepository, userRepo userRepo.UserRepository) MedicoService {
+func NewMedicoService(medicoRepo medicoRepo.MedicoRepository, userRepo userRepo.UserRepository, pacienteRepo pacienteRepo.PacienteRepository, db *sql.DB) MedicoService {
 	return &medicoService{
-		medicoRepo: medicoRepo,
-		userRepo:   userRepo,
+		medicoRepo:   medicoRepo,
+		userRepo:     userRepo,
+		pacienteRepo: pacienteRepo,
+		db:           db,
 	}
 }
 
@@ -190,7 +196,8 @@ func (s *medicoService) ActualizarMedico(ctx context.Context, medicoID int64, re
 }
 
 func (s *medicoService) DesactivarMedico(ctx context.Context, medicoID int64) error {
-	if medicoID <= 0 {
+
+	if medicoID <= 1 {
 		return pkg.ErrIDInvalido
 	}
 
@@ -203,8 +210,56 @@ func (s *medicoService) DesactivarMedico(ctx context.Context, medicoID int64) er
 		return pkg.ErrMedicoInactivo
 	}
 
-	if err := s.medicoRepo.DesactivarMedico(ctx, medicoID); err != nil {
-		return fmt.Errorf("%w: %v", pkg.ErrDesactivarMedico, err)
+	// 🔥 BEGIN TX
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("error iniciando transacción: %w", err)
+	}
+
+	// 🔥 manejo seguro de rollback
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		}
+	}()
+
+	// 🔥 1. remover médico de pacientes
+	queryPacientes := `
+		UPDATE pacientes 
+		SET medico_tratante_id = NULL,
+		    updated_at = NOW()
+		WHERE medico_tratante_id = $1;
+	`
+
+	if _, err = tx.ExecContext(ctx, queryPacientes, medicoID); err != nil {
+		return fmt.Errorf("%w: %v", pkg.ErrQuitarMedicoPaciente, err)
+	}
+
+	// 🔥 2. desactivar médico
+	queryUser := `
+	UPDATE users
+	SET activo = false,
+	    updated_at = NOW()
+	WHERE id = $1;
+`
+
+	result, err := tx.ExecContext(ctx, queryUser, medico.UserID)
+	if err != nil {
+		return fmt.Errorf("%w: %v", pkg.ErrDesactivarUsuario, err)
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rows == 0 {
+		return pkg.ErrUsuarioNoEncontrado
+	}
+
+	// 🔥 COMMIT
+	if err = tx.Commit(); err != nil {
+		return fmt.Errorf("error al hacer commit: %w", err)
 	}
 
 	return nil

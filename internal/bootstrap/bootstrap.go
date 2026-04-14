@@ -17,6 +17,9 @@ import (
 	handlerMedico "turnos-medicos/internal/features/medicos/handlers"
 	newMedicoPostgresRepo "turnos-medicos/internal/features/medicos/repository/postgres"
 	newMedicoService "turnos-medicos/internal/features/medicos/services"
+
+	//Pacientes
+	newPacientePostgresRepo "turnos-medicos/internal/features/pacientes/repository/postgres"
 )
 
 type Handlers struct {
@@ -42,9 +45,10 @@ func Bootstrap(db *sql.DB) *Handlers {
 	//MEDICOS
 	//Repositories
 	medicoRepo := newMedicoPostgresRepo.NewMedicoPostgresRepository(db)
+	pacienteRepo := newPacientePostgresRepo.NewPacientePostgresRepository(db)
 
 	//services
-	medicoService := newMedicoService.NewMedicoService(medicoRepo, userRepo)
+	medicoService := newMedicoService.NewMedicoService(medicoRepo, userRepo, pacienteRepo, db)
 
 	//handlers
 	medicoHandler := handlerMedico.NewMedicoHandler(medicoService)

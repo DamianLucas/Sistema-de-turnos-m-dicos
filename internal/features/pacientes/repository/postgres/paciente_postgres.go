@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 	"turnos-medicos/internal/features/pacientes/models"
 	"turnos-medicos/internal/pkg"
 
@@ -24,20 +25,13 @@ func NewPacientePostgresRepository(db *sql.DB) *PacientePostgresRepository {
 func (r *PacientePostgresRepository) CrearPaciente(ctx context.Context, p *models.Paciente) error {
 	query := `
 		INSERT INTO pacientes (
-			nombre,
-			apellido,
-			dni,
-			email,
-			telefono,
-			fecha_nacimiento,
-			direccion,
-			obra_social,
-			medico_tratante_id,
-			activo
+			nombre, apellido, dni, email, telefono,
+			fecha_nacimiento, direccion, obra_social,
+			medico_tratante_id, activo
 		) VALUES (
 			$1, $2, $3, $4, $5, $6, $7, $8, $9, true
 		)
-		RETURNING id, created_at, updated_at;
+		RETURNING id, created_at, updated_at
 	`
 
 	err := r.db.QueryRowContext(
@@ -54,12 +48,19 @@ func (r *PacientePostgresRepository) CrearPaciente(ctx context.Context, p *model
 		p.MedicoTratante,
 	).Scan(&p.ID, &p.CreatedAt, &p.UpdatedAt)
 
-	if err != nil {
-		if pqErr, ok := err.(*pq.Error); ok {
-			if pqErr.Code == "23505" && pqErr.Constraint == "pacientes_dni_key" {
+	var pqErr *pq.Error
+	if errors.As(err, &pqErr) {
+		if pqErr.Code == "23505" { // unique_violation
+			if strings.Contains(pqErr.Constraint, "pacientes_dni_key") {
 				return pkg.ErrDNIDuplicado
 			}
+			if strings.Contains(pqErr.Constraint, "pacientes_email_key") {
+				return pkg.ErrEmailDuplicado
+			}
 		}
+	}
+
+	if err != nil {
 		return err
 	}
 
@@ -430,4 +431,23 @@ func (r *PacientePostgresRepository) ListarPacientesPorMedico(ctx context.Contex
 	}
 
 	return pacientes, nil
+}
+
+// Si bien este metodo rompe un poco el diseño ya que es un metodo que se usa en otro metodo (DesactivarMedico),
+// pero la interface lo reclama asi que por el momento quedara.
+func (r *PacientePostgresRepository) RemoverMedicoDePacientes(ctx context.Context, medicoID int64) error {
+
+	query := `
+		UPDATE pacientes 
+		SET medico_tratante_id = NULL,
+		    updated_at = NOW()
+		WHERE medico_tratante_id = $1;
+	`
+
+	_, err := r.db.ExecContext(ctx, query, medicoID)
+	if err != nil {
+		return fmt.Errorf("repo remover medico de pacientes: %w", err)
+	}
+
+	return nil
 }

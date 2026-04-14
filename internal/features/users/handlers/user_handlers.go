@@ -41,7 +41,7 @@ func (h *UserHandler) CrearUsuario(c *gin.Context) {
 		pkg.InternalError(c)
 		return
 	}
-	pkg.Created(c, user)
+	pkg.Created(c, user, "Usuario creado correctamente")
 
 }
 

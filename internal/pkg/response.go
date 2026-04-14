@@ -8,6 +8,7 @@ import (
 
 type ApiResponse struct {
 	Success bool        `json:"success"`
+	Message string      `json:"message,omitempty"`
 	Data    interface{} `json:"data,omitempty"`
 	Error   string      `json:"error,omitempty"`
 }
@@ -18,16 +19,18 @@ func JSON(c *gin.Context, status int, payload ApiResponse) {
 
 //helpers
 
-func Success(c *gin.Context, data interface{}) {
+func Success(c *gin.Context, data interface{}, message string) {
 	JSON(c, http.StatusOK, ApiResponse{
 		Success: true,
+		Message: message,
 		Data:    data,
 	})
 }
 
-func Created(c *gin.Context, data interface{}) {
+func Created(c *gin.Context, data interface{}, message string) {
 	JSON(c, http.StatusCreated, ApiResponse{
 		Success: true,
+		Message: message,
 		Data:    data,
 	})
 }

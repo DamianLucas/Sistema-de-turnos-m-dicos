@@ -48,7 +48,7 @@ func (h *MedicoHandler) CrearMedico(c *gin.Context) {
 		return
 	}
 
-	pkg.Created(c, medico)
+	pkg.Created(c, medico, "Medico creado correctamente")
 }
 
 func (h *MedicoHandler) ObtenerMedicoPorID(c *gin.Context) {
@@ -60,7 +60,7 @@ func (h *MedicoHandler) ObtenerMedicoPorID(c *gin.Context) {
 		return
 	}
 
-	medicoID, err := h.service.ObtenerMedicoPorID(c.Request.Context(), id)
+	medico, err := h.service.ObtenerMedicoPorID(c.Request.Context(), id)
 
 	if err != nil {
 		if errors.Is(err, pkg.ErrMedicoNoEncontrado) {
@@ -74,7 +74,7 @@ func (h *MedicoHandler) ObtenerMedicoPorID(c *gin.Context) {
 		pkg.InternalError(c)
 		return
 	}
-	pkg.Success(c, medicoID)
+	pkg.Success(c, medico, "Medico obtenido correctamente")
 }
 
 func (h *MedicoHandler) ObtenerMedicoPorMatricula(c *gin.Context) {
@@ -94,7 +94,7 @@ func (h *MedicoHandler) ObtenerMedicoPorMatricula(c *gin.Context) {
 		pkg.InternalError(c)
 		return
 	}
-	pkg.Success(c, medico)
+	pkg.Success(c, medico, "Medico obtenido por matricula correctamente")
 }
 
 func (h *MedicoHandler) ListarMedicos(c *gin.Context) {
@@ -126,7 +126,7 @@ func (h *MedicoHandler) ListarMedicos(c *gin.Context) {
 		medicos = []*models.Medico{}
 	}
 
-	pkg.Success(c, medicos)
+	pkg.Success(c, medicos, "Medicos listados correctamente")
 }
 
 func (h *MedicoHandler) ActualizarMedico(c *gin.Context) {
@@ -157,21 +157,32 @@ func (h *MedicoHandler) ActualizarMedico(c *gin.Context) {
 		return
 	}
 
-	pkg.Success(c, medico)
+	pkg.Success(c, medico, "Medico actualizado correctamente")
 }
 
 func (h *MedicoHandler) DesactivarMedico(c *gin.Context) {
 	idStr := c.Param("id")
+
 	medicoID, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
-		pkg.BadRequest(c, "ID invalido")
+		pkg.BadRequest(c, "ID inválido")
 		return
 	}
 
 	err = h.service.DesactivarMedico(c.Request.Context(), medicoID)
 	if err != nil {
+		if errors.Is(err, pkg.ErrIDInvalido) {
+			pkg.BadRequest(c, err.Error())
+			return
+		}
+
 		if errors.Is(err, pkg.ErrMedicoNoEncontrado) {
-			pkg.NotFound(c, pkg.ErrMedicoNoEncontrado.Error())
+			pkg.NotFound(c, err.Error())
+			return
+		}
+
+		if errors.Is(err, pkg.ErrMedicoInactivo) {
+			pkg.BadRequest(c, err.Error())
 			return
 		}
 
@@ -179,7 +190,7 @@ func (h *MedicoHandler) DesactivarMedico(c *gin.Context) {
 		return
 	}
 
-	pkg.Success(c, "Medico desactivado correctamente")
+	pkg.Success(c, nil, "Médico desactivado correctamente")
 }
 
 func (h *MedicoHandler) ActivarMedico(c *gin.Context) {
@@ -202,5 +213,5 @@ func (h *MedicoHandler) ActivarMedico(c *gin.Context) {
 		return
 	}
 
-	pkg.Success(c, "medico activado correctamente")
+	pkg.Success(c, nil, "medico activado correctamente")
 }
