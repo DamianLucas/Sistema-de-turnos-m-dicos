@@ -41,7 +41,7 @@ func (h *UserHandler) CrearUsuario(c *gin.Context) {
 		pkg.InternalError(c)
 		return
 	}
-	pkg.Created(c, user, "Usuario creado correctamente")
+	pkg.Created(c, user, "usuario creado correctamente")
 
 }
 
@@ -64,7 +64,7 @@ func (h *UserHandler) ObtenerUsuarioPorID(c *gin.Context) {
 		pkg.InternalError(c)
 		return
 	}
-	pkg.Success(c, userID)
+	pkg.Success(c, userID, "usuario obtenido correctamente")
 
 }
 
@@ -78,7 +78,7 @@ func (h *UserHandler) ListarUsuariosActivos(c *gin.Context) {
 		return
 	}
 
-	pkg.Success(c, usersActive)
+	pkg.Success(c, usersActive, "usuarios activos listados correctamente")
 }
 
 // ActualizarUsuarios
@@ -106,7 +106,7 @@ func (h *UserHandler) ActualizarUsuario(c *gin.Context) {
 		return
 	}
 
-	pkg.Success(c, user)
+	pkg.Success(c, user, "usuario actualizado correctamente")
 }
 
 // DesactivarUsuario
@@ -129,5 +129,5 @@ func (h *UserHandler) DesactivarUsuario(c *gin.Context) {
 		return
 	}
 
-	pkg.Success(c, "Usuario desactivado")
+	pkg.Success(c, nil, "Usuario desactivado")
 }

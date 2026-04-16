@@ -35,5 +35,5 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	pkg.Success(c, resp)
+	pkg.Success(c, resp, "Login correcto")
 }
