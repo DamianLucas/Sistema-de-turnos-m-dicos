@@ -19,18 +19,21 @@ import (
 	newMedicoService "turnos-medicos/internal/features/medicos/services"
 
 	//Pacientes
+	handlerPaciente "turnos-medicos/internal/features/pacientes/handlers"
 	newPacientePostgresRepo "turnos-medicos/internal/features/pacientes/repository/postgres"
+	newPacienteService "turnos-medicos/internal/features/pacientes/services"
 )
 
 type Handlers struct {
-	User   *handlerUser.UserHandler
-	Auth   *handlerAuth.AuthHandler
-	Medico *handlerMedico.MedicoHandler
+	User     *handlerUser.UserHandler
+	Auth     *handlerAuth.AuthHandler
+	Medico   *handlerMedico.MedicoHandler
+	Paciente *handlerPaciente.PacienteHandler
 }
 
 func Bootstrap(db *sql.DB) *Handlers {
 
-	//USERS
+	//USERS:
 	//Repositories
 	userRepo := newUserPostgresRepo.NewUserPostgresRepository(db)
 	authService := newAuthService.NewAuthService(userRepo)
@@ -42,24 +45,30 @@ func Bootstrap(db *sql.DB) *Handlers {
 	userHandler := handlerUser.NewUserHandler(userService)
 	authHandler := handlerAuth.NewAuthHandler(authService)
 
-	//MEDICOS
+	//MEDICOS:
 	//Repositories
 	medicoRepo := newMedicoPostgresRepo.NewMedicoPostgresRepository(db)
-	pacienteRepo := newPacientePostgresRepo.NewPacientePostgresRepository(db)
+	pacienteRepo := newPacientePostgresRepo.NewPacientePostgresRepository(db) //repo de paciente
 
 	//services
 	medicoService := newMedicoService.NewMedicoService(medicoRepo, userRepo, pacienteRepo, db)
+	pacienteService := newPacienteService.NewPacienteService(pacienteRepo, medicoRepo)
 
 	//handlers
-	medicoHandler := handlerMedico.NewMedicoHandler(medicoService)
+	medicoHandler := handlerMedico.NewMedicoHandler(medicoService, pacienteService)
+
+	//PACIENTES:
+	//handlers
+	pacienteHandler := handlerPaciente.NewPacienteHandler(pacienteService)
 
 	//Seed
 	SeedAdminUser(context.Background(), userService)
 
 	return &Handlers{
-		User:   userHandler,
-		Auth:   authHandler,
-		Medico: medicoHandler,
+		User:     userHandler,
+		Auth:     authHandler,
+		Medico:   medicoHandler,
+		Paciente: pacienteHandler,
 	}
 
 }

@@ -173,5 +173,43 @@ func (h *PacienteHandler) ActualizarPaciente(c *gin.Context) {
 }
 
 func (h *PacienteHandler) AsignarMedicoTratante(c *gin.Context) {
-	//  implementar
+	idStr := c.Param("id")
+	pacienteID, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		pkg.BadRequest(c, pkg.ErrIDInvalido.Error())
+		return
+	}
+
+	medicoIDStr := c.Param("medicoID")
+	medicoID, err := strconv.ParseInt(medicoIDStr, 10, 64)
+	if err != nil {
+		pkg.BadRequest(c, pkg.ErrIDInvalido.Error())
+		return
+	}
+
+	err = h.service.AsignarMedicoTratante(c.Request.Context(), pacienteID, medicoID)
+	if err != nil {
+		pkg.HandleError(c, err)
+		return
+	}
+
+	pkg.Success(c, nil, "Médico tratante asignado correctamente")
+}
+
+func (h *PacienteHandler) QuitarMedicoTratante(c *gin.Context) {
+	idStr := c.Param("id")
+
+	pacienteID, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		pkg.BadRequest(c, pkg.ErrIDInvalido.Error())
+		return
+	}
+
+	err = h.service.QuitarMedicoTratante(c.Request.Context(), pacienteID)
+	if err != nil {
+		pkg.HandleError(c, err)
+		return
+	}
+
+	pkg.Success(c, nil, "Médico tratante removido correctamente")
 }

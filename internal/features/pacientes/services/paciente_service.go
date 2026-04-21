@@ -182,7 +182,6 @@ func (s *pacienteService) AsignarMedicoTratante(ctx context.Context, pacienteID,
 	if err != nil {
 		return err
 	}
-
 	if !medico.Activo {
 		return pkg.ErrMedicoInactivo
 	}
@@ -191,11 +190,10 @@ func (s *pacienteService) AsignarMedicoTratante(ctx context.Context, pacienteID,
 		return nil
 	}
 
-	paciente.MedicoTratante = &medicoID
-
 	if err := s.repoPaciente.AsignarMedicoTratante(ctx, pacienteID, medicoID); err != nil {
-		return fmt.Errorf("%w: %v", pkg.ErrAsignarMedicoPaciente, err)
+		return fmt.Errorf("%w", pkg.ErrAsignarMedicoPaciente)
 	}
+
 	return nil
 }
 
@@ -209,16 +207,16 @@ func (s *pacienteService) QuitarMedicoTratante(ctx context.Context, pacienteID i
 		return err
 	}
 
-	if !paciente.Activo {
-		return pkg.ErrPacienteInactivo
-	}
-
 	if paciente.MedicoTratante == nil {
 		return nil
 	}
 
+	if !paciente.Activo {
+		return pkg.ErrPacienteInactivo
+	}
+
 	if err := s.repoPaciente.QuitarMedicoTratante(ctx, pacienteID); err != nil {
-		return fmt.Errorf("%w: %v", pkg.ErrQuitarMedicoPaciente, err)
+		return fmt.Errorf("%w", pkg.ErrQuitarMedicoPaciente)
 	}
 
 	return nil
@@ -240,7 +238,7 @@ func (s *pacienteService) ListarPacientesPorMedico(ctx context.Context, medicoID
 
 	pacientes, err := s.repoPaciente.ListarPacientesPorMedico(ctx, medicoID)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", pkg.ErrListarPacientesPorMedico, err)
+		return nil, fmt.Errorf("%w", pkg.ErrListarPacientesPorMedico)
 	}
 
 	return pacientes, nil

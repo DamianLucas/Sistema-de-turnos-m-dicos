@@ -1,6 +1,7 @@
 package pkg
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -68,4 +69,29 @@ func Forbidden(c *gin.Context, err string) {
 		Success: false,
 		Error:   err,
 	})
+}
+
+func HandleError(c *gin.Context, err error) {
+	switch {
+	case errors.Is(err, ErrIDInvalido):
+		BadRequest(c, err.Error())
+
+	case errors.Is(err, ErrPacienteNoEncontrado):
+		NotFound(c, err.Error())
+
+	case errors.Is(err, ErrPacienteInactivo):
+		BadRequest(c, err.Error())
+
+	case errors.Is(err, ErrMedicoNoEncontrado):
+		NotFound(c, err.Error())
+
+	case errors.Is(err, ErrMedicoInactivo):
+		BadRequest(c, err.Error())
+
+	case errors.Is(err, ErrAsignarMedicoPaciente):
+		InternalError(c)
+
+	default:
+		InternalError(c)
+	}
 }

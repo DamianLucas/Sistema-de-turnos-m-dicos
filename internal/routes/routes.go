@@ -56,10 +56,38 @@ func SetupRoutes(r *gin.Engine, h *bootstrap.Handlers) {
 
 		medicos.GET("/matricula/:matricula", h.Medico.ObtenerMedicoPorMatricula)
 		medicos.GET("/:id", h.Medico.ObtenerMedicoPorID)
+		medicos.GET("/:id/pacientes", h.Medico.ListarPacientesPorMedico) //<------ aqui
 
 		medicos.PUT("/:id", h.Medico.ActualizarMedico)
 		medicos.PATCH("/:id/desactivar", h.Medico.DesactivarMedico)
 		medicos.PATCH("/:id/activar", h.Medico.ActivarMedico)
+	}
+
+	// =========================
+	// PACIENTES
+	// =========================
+
+	//por el momento separare en dos grupos las rutas de paciente ya que aun no implemente ownership
+	pacientes := private.Group("/pacientes")
+
+	//escritura
+	pacienteWrite := pacientes.Group("/")
+	pacienteWrite.Use(middleware.RequireRol(models.RolAdmin, models.RolAdministrativo))
+	{
+		pacienteWrite.POST("/", h.Paciente.CrearPaciente)
+		pacienteWrite.PUT("/:id", h.Paciente.ActualizarPaciente)
+		pacienteWrite.PATCH("/:id/desactivar", h.Paciente.DesactivarPaciente)
+		pacienteWrite.PATCH("/:id/asignar-medico/:medicoID", h.Paciente.AsignarMedicoTratante)
+		pacienteWrite.DELETE("/:id/medico", h.Paciente.QuitarMedicoTratante)
+	}
+
+	//lectura
+	pacienteRead := pacientes.Group("/")
+	pacienteRead.Use(middleware.RequireRol(models.RolAdmin, models.RolAdministrativo, models.RolMedico))
+	{
+		pacienteRead.GET("/", h.Paciente.ListarPacientesActivos)
+		pacienteRead.GET("/dni/:dni", h.Paciente.ObtenerPacientePorDNI)
+		pacienteRead.GET("/:id", h.Paciente.ObtenerPacientePorID)
 	}
 
 }

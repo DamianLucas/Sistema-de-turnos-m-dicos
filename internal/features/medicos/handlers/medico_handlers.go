@@ -6,6 +6,8 @@ import (
 	"turnos-medicos/internal/features/medicos/dto"
 	"turnos-medicos/internal/features/medicos/models"
 	"turnos-medicos/internal/features/medicos/services"
+	pacienteService "turnos-medicos/internal/features/pacientes/services"
+
 	"turnos-medicos/internal/pkg"
 
 	"github.com/gin-gonic/gin"
@@ -13,11 +15,15 @@ import (
 
 // IMPLEMENTAR
 type MedicoHandler struct {
-	service services.MedicoService
+	service         services.MedicoService
+	pacienteService pacienteService.PacienteService
 }
 
-func NewMedicoHandler(s services.MedicoService) *MedicoHandler {
-	return &MedicoHandler{service: s}
+func NewMedicoHandler(s services.MedicoService, ps pacienteService.PacienteService) *MedicoHandler {
+	return &MedicoHandler{
+		service:         s,
+		pacienteService: ps,
+	}
 }
 
 func (h *MedicoHandler) CrearMedico(c *gin.Context) {
@@ -214,4 +220,22 @@ func (h *MedicoHandler) ActivarMedico(c *gin.Context) {
 	}
 
 	pkg.Success(c, nil, "medico activado correctamente")
+}
+
+func (h *MedicoHandler) ListarPacientesPorMedico(c *gin.Context) {
+	idStr := c.Param("id")
+	medicoID, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		pkg.BadRequest(c, pkg.ErrIDInvalido.Error())
+		return
+	}
+
+	// Llamamos al servicio de pacientes porque lo que queremos obtener son pacientes
+	pacientes, err := h.pacienteService.ListarPacientesPorMedico(c.Request.Context(), medicoID)
+	if err != nil {
+		pkg.HandleError(c, err)
+		return
+	}
+
+	pkg.Success(c, pacientes, "Pacientes listados correctamente")
 }
