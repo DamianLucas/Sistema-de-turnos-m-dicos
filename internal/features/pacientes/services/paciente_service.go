@@ -19,6 +19,7 @@ type PacienteService interface {
 	ObtenerPacientePorDNI(ctx context.Context, dni string) (*models.Paciente, error)
 	ListarPacientesActivos(ctx context.Context) ([]*models.Paciente, error)
 	DesactivarPaciente(ctx context.Context, pacienteID int64) error
+	ActivarPaciente(ctx context.Context, pacienteID int64) error
 	ActualizarPaciente(ctx context.Context, pacienteID int64, req dto.ActualizarPacienteRequest) (*models.Paciente, error)
 	AsignarMedicoTratante(ctx context.Context, pacienteID, medicoID int64) error
 	QuitarMedicoTratante(ctx context.Context, pacienteID int64) error
@@ -129,6 +130,27 @@ func (s *pacienteService) DesactivarPaciente(ctx context.Context, pacienteID int
 	}
 
 	return nil
+}
+
+func (s *pacienteService) ActivarPaciente(ctx context.Context, pacienteID int64) error {
+	if pacienteID <= 0 {
+		return pkg.ErrIDInvalido
+	}
+
+	paciente, err := s.repoPaciente.ObtenerPacientePorID(ctx, pacienteID)
+	if err != nil {
+		return err
+	}
+	if paciente.Activo {
+		return pkg.ErrPacienteYaActivo
+	}
+
+	if err := s.repoPaciente.ActivarPaciente(ctx, pacienteID); err != nil {
+		return pkg.ErrActivarPaciente
+	}
+
+	return nil
+
 }
 
 func (s *pacienteService) ActualizarPaciente(ctx context.Context, pacienteID int64, req dto.ActualizarPacienteRequest) (*models.Paciente, error) {

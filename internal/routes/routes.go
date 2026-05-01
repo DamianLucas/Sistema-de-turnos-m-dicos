@@ -77,6 +77,7 @@ func SetupRoutes(r *gin.Engine, h *bootstrap.Handlers) {
 		pacienteWrite.POST("/", h.Paciente.CrearPaciente)
 		pacienteWrite.PUT("/:id", h.Paciente.ActualizarPaciente)
 		pacienteWrite.PATCH("/:id/desactivar", h.Paciente.DesactivarPaciente)
+		pacienteWrite.PATCH("/:id/activar", h.Paciente.ActivarPaciente)
 		pacienteWrite.PATCH("/:id/asignar-medico/:medicoID", h.Paciente.AsignarMedicoTratante)
 		pacienteWrite.DELETE("/:id/medico", h.Paciente.QuitarMedicoTratante)
 	}

@@ -9,6 +9,7 @@ type Agenda struct {
 	HoraInicio    string    `json:"hora_inicio"`
 	HoraFin       string    `json:"hora_fin"`
 	DuracionTurno int64     `json:"duracion_turno"`
+	Activo        bool      `json:"activo"`
 	CreatedAt     time.Time `json:"created_at"`
 	UpdatedAt     time.Time `json:"updated_at"`
 }

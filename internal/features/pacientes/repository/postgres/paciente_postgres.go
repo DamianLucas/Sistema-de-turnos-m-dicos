@@ -281,12 +281,12 @@ func (r *PacientePostgresRepository) ActualizarPaciente(ctx context.Context, p *
 
 	if err != nil {
 
-		// 🔥 paciente no encontrado
+		// paciente no encontrado
 		if errors.Is(err, sql.ErrNoRows) {
 			return pkg.ErrPacienteNoEncontrado
 		}
 
-		// 🔥 DNI duplicado
+		//DNI duplicado
 		if pqErr, ok := err.(*pq.Error); ok {
 			if pqErr.Code == "23505" && pqErr.Constraint == "pacientes_dni_key" {
 				return pkg.ErrDNIDuplicado
@@ -314,6 +314,30 @@ func (r *PacientePostgresRepository) DesactivarPaciente(ctx context.Context, pac
 	}
 
 	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return pkg.ErrPacienteNoEncontrado
+	}
+
+	return nil
+}
+
+func (r *PacientePostgresRepository) ActivarPaciente(ctx context.Context, pacienteID int64) error {
+	query := `
+		UPDATE pacientes 
+		SET activo = true, updated_at = NOW()
+		WHERE id = $1
+	`
+
+	resultado, err := r.db.ExecContext(ctx, query, pacienteID)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := resultado.RowsAffected()
 	if err != nil {
 		return err
 	}

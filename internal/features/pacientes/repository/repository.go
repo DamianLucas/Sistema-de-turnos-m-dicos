@@ -11,6 +11,7 @@ type PacienteRepository interface {
 	ObtenerPacientePorDNI(ctx context.Context, dni string) (*models.Paciente, error)
 	ListarPacientesActivos(ctx context.Context) ([]*models.Paciente, error)
 	DesactivarPaciente(ctx context.Context, pacienteID int64) error
+	ActivarPaciente(ctx context.Context, pacienteID int64) error
 	ActualizarPaciente(ctx context.Context, p *models.Paciente) error
 
 	AsignarMedicoTratante(ctx context.Context, pacienteID, medicoID int64) error

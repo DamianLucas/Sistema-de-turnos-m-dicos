@@ -139,6 +139,40 @@ func (h *PacienteHandler) DesactivarPaciente(c *gin.Context) {
 
 }
 
+func (h *PacienteHandler) ActivarPaciente(c *gin.Context) {
+	idStr := c.Param("id")
+
+	pacienteID, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		pkg.BadRequest(c, pkg.ErrIDInvalido.Error())
+		return
+	}
+
+	err = h.service.ActivarPaciente(c.Request.Context(), pacienteID)
+	if err != nil {
+		if errors.Is(err, pkg.ErrIDInvalido) {
+			pkg.BadRequest(c, err.Error())
+			return
+		}
+
+		if errors.Is(err, pkg.ErrPacienteNoEncontrado) {
+			pkg.NotFound(c, err.Error())
+			return
+		}
+
+		if errors.Is(err, pkg.ErrPacienteYaActivo) {
+			pkg.BadRequest(c, err.Error())
+			return
+		}
+
+		pkg.InternalError(c)
+		return
+	}
+
+	pkg.Success(c, nil, "Paciente activado correctamente")
+
+}
+
 func (h *PacienteHandler) ActualizarPaciente(c *gin.Context) {
 	idStr := c.Param("id")
 

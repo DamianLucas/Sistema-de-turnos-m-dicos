@@ -36,12 +36,18 @@ var (
 	ErrDNIInvalido              = errors.New("DNI invalido")
 	ErrListarPacientesActivos   = errors.New("error al listar pacientes activos")
 	ErrDesactivarPaciente       = errors.New("error desactivando paciente")
+	ErrPacienteYaActivo         = errors.New("paciente ya activo")
+	ErrActivarPaciente          = errors.New("error al activar paciente")
 	ErrActualizarPaciente       = errors.New("error al actualizar paciente")
 	ErrAsignarMedicoPaciente    = errors.New("error al asignar medico tratante")
 	ErrQuitarMedicoPaciente     = errors.New("error al quitar medico tratante")
 	ErrListarPacientesPorMedico = errors.New("error al listar pacientes por medico")
 
 	//agenda
+	ErrAgendaNoEncontrada = errors.New("agenda no encontrada")
+	ErrAgendaDuplicada    = errors.New("agenda ya existe para ese día")
+	ErrAgendaInvalida     = errors.New("datos de agenda inválidos")
+
 	//turnos
 	ErrTurnoNoDisponible = errors.New("turno no disponible")
 
