@@ -47,6 +47,9 @@ var (
 	ErrAgendaNoEncontrada = errors.New("agenda no encontrada")
 	ErrAgendaDuplicada    = errors.New("agenda ya existe para ese día")
 	ErrAgendaInvalida     = errors.New("datos de agenda inválidos")
+	ErrAgendaInactiva     = errors.New("agenda inactiva")
+	ErrDesactivarAgenda   = errors.New("error desactivando agenda")
+	ErrActivarAgenda      = errors.New("error activando agenda")
 
 	//turnos
 	ErrTurnoNoDisponible = errors.New("turno no disponible")
