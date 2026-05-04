@@ -145,8 +145,8 @@ func (s *pacienteService) ActivarPaciente(ctx context.Context, pacienteID int64)
 		return pkg.ErrPacienteYaActivo
 	}
 
-	if err := s.repo.ActivarAgenda(ctx, id); err != nil {
-		return fmt.Errorf("%w: %v", pkg.ErrActivarAgenda, err)
+	if err := s.repoPaciente.ActivarPaciente(ctx, pacienteID); err != nil {
+		return pkg.ErrActivarPaciente
 	}
 
 	return nil
