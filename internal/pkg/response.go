@@ -73,24 +73,36 @@ func Forbidden(c *gin.Context, err string) {
 
 func HandleError(c *gin.Context, err error) {
 	switch {
+
+	// ===== GENERALES =====
 	case errors.Is(err, ErrIDInvalido):
 		BadRequest(c, err.Error())
 
+	// ===== PACIENTES =====
 	case errors.Is(err, ErrPacienteNoEncontrado):
 		NotFound(c, err.Error())
 
 	case errors.Is(err, ErrPacienteInactivo):
 		BadRequest(c, err.Error())
 
+	// ===== MEDICOS =====
 	case errors.Is(err, ErrMedicoNoEncontrado):
 		NotFound(c, err.Error())
 
 	case errors.Is(err, ErrMedicoInactivo):
 		BadRequest(c, err.Error())
 
-	case errors.Is(err, ErrAsignarMedicoPaciente):
-		InternalError(c)
+	// ===== AGENDA =====
+	case errors.Is(err, ErrAgendaNoEncontrada):
+		NotFound(c, err.Error())
 
+	case errors.Is(err, ErrAgendaInactiva):
+		BadRequest(c, err.Error())
+
+	case errors.Is(err, ErrAgendaDuplicada):
+		BadRequest(c, err.Error())
+
+	// ===== DEFAULT =====
 	default:
 		InternalError(c)
 	}

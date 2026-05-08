@@ -22,6 +22,11 @@ import (
 	handlerPaciente "turnos-medicos/internal/features/pacientes/handlers"
 	newPacientePostgresRepo "turnos-medicos/internal/features/pacientes/repository/postgres"
 	newPacienteService "turnos-medicos/internal/features/pacientes/services"
+
+	//Agendas
+	handlerAgenda "turnos-medicos/internal/features/agenda/handlers"
+	newAgendaPostgresRepo "turnos-medicos/internal/features/agenda/repository/postgres"
+	newAgendaService "turnos-medicos/internal/features/agenda/services"
 )
 
 type Handlers struct {
@@ -29,6 +34,7 @@ type Handlers struct {
 	Auth     *handlerAuth.AuthHandler
 	Medico   *handlerMedico.MedicoHandler
 	Paciente *handlerPaciente.PacienteHandler
+	Agenda   *handlerAgenda.AgendaHandler
 }
 
 func Bootstrap(db *sql.DB) *Handlers {
@@ -45,6 +51,8 @@ func Bootstrap(db *sql.DB) *Handlers {
 	userHandler := handlerUser.NewUserHandler(userService)
 	authHandler := handlerAuth.NewAuthHandler(authService)
 
+	//=======================================================================================
+
 	//MEDICOS:
 	//Repositories
 	medicoRepo := newMedicoPostgresRepo.NewMedicoPostgresRepository(db)
@@ -57,9 +65,26 @@ func Bootstrap(db *sql.DB) *Handlers {
 	//handlers
 	medicoHandler := handlerMedico.NewMedicoHandler(medicoService, pacienteService)
 
+	//=======================================================================================
+
 	//PACIENTES:
 	//handlers
 	pacienteHandler := handlerPaciente.NewPacienteHandler(pacienteService)
+
+	//=======================================================================================
+
+	//AGENDA
+	//Repositories
+	agendaRepo := newAgendaPostgresRepo.NewAgendaPostgresRepository(db)
+
+	//service
+	agendaService := newAgendaService.NewAgendaService(
+		agendaRepo,
+		medicoRepo,
+	)
+
+	//handler
+	agendaHandler := handlerAgenda.NewAgendaHandler(agendaService)
 
 	//Seed
 	SeedAdminUser(context.Background(), userService)
@@ -69,6 +94,7 @@ func Bootstrap(db *sql.DB) *Handlers {
 		Auth:     authHandler,
 		Medico:   medicoHandler,
 		Paciente: pacienteHandler,
+		Agenda:   agendaHandler,
 	}
 
 }

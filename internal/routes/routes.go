@@ -91,4 +91,22 @@ func SetupRoutes(r *gin.Engine, h *bootstrap.Handlers) {
 		pacienteRead.GET("/:id", h.Paciente.ObtenerPacientePorID)
 	}
 
+	// =========================
+	// AGENDA
+	// =========================
+
+	agendas := private.Group("/agendas")
+	agendas.Use(middleware.RequireRol(models.RolAdmin, models.RolAdministrativo))
+	{
+		agendas.POST("/medico/:medicoID", h.Agenda.CrearAgenda)
+
+		agendas.GET("/medico/:medicoID", h.Agenda.ListarAgendasPorMedico)
+		agendas.GET("/:id", h.Agenda.ObtenerAgendaPorID)
+
+		agendas.PUT("/:id", h.Agenda.ActualizarAgenda)
+
+		agendas.PATCH("/:id/desactivar", h.Agenda.DesactivarAgenda)
+		agendas.PATCH("/:id/activar", h.Agenda.ActivarAgenda)
+	}
+
 }
