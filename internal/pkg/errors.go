@@ -53,6 +53,7 @@ var (
 
 	//turnos
 	ErrTurnoNoDisponible = errors.New("turno no disponible")
+	ErrTurnoNoEncontrado = errors.New("turno no encontrado")
 
 	ErrErrorPersistencia = errors.New("error interno de persistencia")
 )
