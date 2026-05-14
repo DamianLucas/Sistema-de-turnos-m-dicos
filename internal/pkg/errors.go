@@ -50,10 +50,19 @@ var (
 	ErrAgendaInactiva     = errors.New("agenda inactiva")
 	ErrDesactivarAgenda   = errors.New("error desactivando agenda")
 	ErrActivarAgenda      = errors.New("error activando agenda")
+	ErrHoraInvalida       = errors.New("error hora invalida")
+
+	ErrFechaInvalida       = errors.New("error fecha invalida")
+	ErrRangoFechasInvalido = errors.New("error rango de fechas invalido")
+	ErrRangoFechasExcedido = errors.New("error rango de fecha excedido")
 
 	//turnos
-	ErrTurnoNoDisponible = errors.New("turno no disponible")
-	ErrTurnoNoEncontrado = errors.New("turno no encontrado")
+	ErrTurnoNoDisponible   = errors.New("turno no disponible")
+	ErrTurnoNoEncontrado   = errors.New("turno no encontrado")
+	ErrTurnoExpirado       = errors.New("turno expirado")
+	ErrTurnoNoReservado    = errors.New("turno no reservado")
+	ErrTurnoSinPaciente    = errors.New("turno sin paciente asignado")
+	ErrEstadoTurnoInvalido = errors.New("error estado de turno invalido")
 
 	ErrErrorPersistencia = errors.New("error interno de persistencia")
 )

@@ -37,19 +37,17 @@ func (s *agendaService) CrearAgenda(ctx context.Context, medicoID int64, req dto
 		return nil, pkg.ErrIDInvalido
 	}
 
-	const layoutHora = "15:04" //validacion horario - convención del lenguaje
-
-	inicio, err := time.Parse(layoutHora, req.HoraInicio)
+	horaInicio, err := time.Parse("15:04", req.HoraInicio)
 	if err != nil {
-		return nil, pkg.ErrAgendaInvalida
+		return nil, pkg.ErrHoraInvalida
 	}
 
-	fin, err := time.Parse(layoutHora, req.HoraFin)
+	horaFin, err := time.Parse("15:04", req.HoraFin)
 	if err != nil {
-		return nil, pkg.ErrAgendaInvalida
+		return nil, pkg.ErrHoraInvalida
 	}
 
-	if !fin.After(inicio) {
+	if !horaFin.After(horaInicio) {
 		return nil, pkg.ErrAgendaInvalida
 	}
 
@@ -65,13 +63,12 @@ func (s *agendaService) CrearAgenda(ctx context.Context, medicoID int64, req dto
 	agenda := &models.Agenda{
 		MedicoID:      medicoID,
 		DiaSemana:     req.DiaSemana,
-		HoraInicio:    req.HoraInicio,
-		HoraFin:       req.HoraFin,
+		HoraInicio:    horaInicio,
+		HoraFin:       horaFin,
 		DuracionTurno: req.DuracionTurno,
 	}
 
-	err = s.repo.CrearAgenda(ctx, agenda)
-	if err != nil {
+	if err := s.repo.CrearAgenda(ctx, agenda); err != nil {
 		return nil, err
 	}
 
@@ -148,8 +145,8 @@ func (s *agendaService) ActualizarAgenda(ctx context.Context, agendaID int64, re
 		return nil, pkg.ErrAgendaInvalida
 	}
 
-	agendaActual.HoraInicio = req.HoraInicio
-	agendaActual.HoraFin = req.HoraFin
+	agendaActual.HoraInicio = inicio
+	agendaActual.HoraFin = fin
 	agendaActual.DuracionTurno = req.DuracionTurno
 
 	err = s.repo.ActualizarAgenda(ctx, agendaActual)
