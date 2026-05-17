@@ -27,6 +27,11 @@ import (
 	handlerAgenda "turnos-medicos/internal/features/agenda/handlers"
 	newAgendaPostgresRepo "turnos-medicos/internal/features/agenda/repository/postgres"
 	newAgendaService "turnos-medicos/internal/features/agenda/services"
+
+	//Turnos
+	handlerTurno "turnos-medicos/internal/features/turnos/handlers"
+	newTurnoPostgresRepo "turnos-medicos/internal/features/turnos/repository/postgres"
+	newTurnoService "turnos-medicos/internal/features/turnos/services"
 )
 
 type Handlers struct {
@@ -35,11 +40,14 @@ type Handlers struct {
 	Medico   *handlerMedico.MedicoHandler
 	Paciente *handlerPaciente.PacienteHandler
 	Agenda   *handlerAgenda.AgendaHandler
+	Turno    *handlerTurno.TurnoHandler
 }
 
 func Bootstrap(db *sql.DB) *Handlers {
+	// =======================================================================================
+	// USUARIOS
+	// =======================================================================================
 
-	//USERS:
 	//Repositories
 	userRepo := newUserPostgresRepo.NewUserPostgresRepository(db)
 	authService := newAuthService.NewAuthService(userRepo)
@@ -51,9 +59,10 @@ func Bootstrap(db *sql.DB) *Handlers {
 	userHandler := handlerUser.NewUserHandler(userService)
 	authHandler := handlerAuth.NewAuthHandler(authService)
 
-	//=======================================================================================
+	// =======================================================================================
+	// MEDICOS
+	// =======================================================================================
 
-	//MEDICOS:
 	//Repositories
 	medicoRepo := newMedicoPostgresRepo.NewMedicoPostgresRepository(db)
 	pacienteRepo := newPacientePostgresRepo.NewPacientePostgresRepository(db) //repo de paciente
@@ -65,15 +74,17 @@ func Bootstrap(db *sql.DB) *Handlers {
 	//handlers
 	medicoHandler := handlerMedico.NewMedicoHandler(medicoService, pacienteService)
 
-	//=======================================================================================
+	// =======================================================================================
+	// PACIENTES
+	// =======================================================================================
 
-	//PACIENTES:
 	//handlers
 	pacienteHandler := handlerPaciente.NewPacienteHandler(pacienteService)
 
-	//=======================================================================================
+	// =======================================================================================
+	// AGENDAS
+	// =======================================================================================
 
-	//AGENDA
 	//Repositories
 	agendaRepo := newAgendaPostgresRepo.NewAgendaPostgresRepository(db)
 
@@ -86,7 +97,29 @@ func Bootstrap(db *sql.DB) *Handlers {
 	//handler
 	agendaHandler := handlerAgenda.NewAgendaHandler(agendaService)
 
-	//Seed
+	// =======================================================================================
+	// TURNOS
+	// =======================================================================================
+
+	//Repositories
+	turnoRepo := newTurnoPostgresRepo.NewTurnoPostgresRepository(db)
+
+	//Services
+	turnoService := newTurnoService.NewTurnoService(
+		turnoRepo,
+		agendaRepo,
+		medicoRepo,
+		pacienteRepo,
+	)
+
+	//Handlers
+	turnoHandler := handlerTurno.NewTurnoHandler(
+		turnoService,
+	)
+
+	// =======================================================================================
+	// SEED
+	// =======================================================================================
 	SeedAdminUser(context.Background(), userService)
 
 	return &Handlers{
@@ -95,6 +128,7 @@ func Bootstrap(db *sql.DB) *Handlers {
 		Medico:   medicoHandler,
 		Paciente: pacienteHandler,
 		Agenda:   agendaHandler,
+		Turno:    turnoHandler,
 	}
 
 }

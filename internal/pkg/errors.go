@@ -63,6 +63,7 @@ var (
 	ErrTurnoNoReservado    = errors.New("turno no reservado")
 	ErrTurnoSinPaciente    = errors.New("turno sin paciente asignado")
 	ErrEstadoTurnoInvalido = errors.New("error estado de turno invalido")
+	ErrHorarioFueraAgenda  = errors.New("horario fuera de agenda")
 
 	ErrErrorPersistencia = errors.New("error interno de persistencia")
 )

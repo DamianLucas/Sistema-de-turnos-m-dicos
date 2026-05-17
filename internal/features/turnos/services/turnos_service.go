@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"turnos-medicos/internal/features/turnos/dto"
@@ -13,12 +12,10 @@ import (
 	agendaRepository "turnos-medicos/internal/features/agenda/repository"
 	medicoRepository "turnos-medicos/internal/features/medicos/repository"
 	pacienteRepository "turnos-medicos/internal/features/pacientes/repository"
-
-	"github.com/lib/pq"
 )
 
 type TurnoService interface {
-	GenerarTurnos(ctx context.Context, agendaID int64, req dto.GenerarTurnosRequest) error
+	CrearTurno(ctx context.Context, req dto.CrearTurnoRequest) (*models.Turno, error)
 	ObtenerTurnoPorID(ctx context.Context, turnoID int64) (*models.Turno, error)
 	ListarTurnosPorMedico(ctx context.Context, medicoID int64) ([]*models.Turno, error)
 	ListarTurnosPorPaciente(ctx context.Context, pacienteID int64) ([]*models.Turno, error)
@@ -50,168 +47,98 @@ func NewTurnoService(
 	}
 }
 
-func (s *turnoService) GenerarTurnos(ctx context.Context, agendaID int64, req dto.GenerarTurnosRequest) error {
+func (s *turnoService) CrearTurno(ctx context.Context, req dto.CrearTurnoRequest) (*models.Turno, error) {
 
-	// Validación básica de ID.
-	if agendaID <= 0 {
-		return pkg.ErrIDInvalido
+	if req.AgendaID <= 0 {
+		return nil, pkg.ErrIDInvalido
 	}
 
-	//obtenemos agenda
-	agenda, err := s.repoAgenda.ObtenerAgendaPorID(ctx, agendaID)
+	// AGENDA
+	agenda, err := s.repoAgenda.ObtenerAgendaPorID(ctx, req.AgendaID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	//no se generan turnos desde agendas inactivas
 	if !agenda.Activo {
-		return pkg.ErrAgendaInactiva
+		return nil, pkg.ErrAgendaInactiva
 	}
 
-	//obtenemos el medico asociado a la agenda
+	// MEDICO
 	medico, err := s.repoMedico.ObtenerMedicoPorID(ctx, agenda.MedicoID)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	//no se generan turnos para medicos inactivos
 	if !medico.Activo {
-		return pkg.ErrMedicoInactivo
+		return nil, pkg.ErrMedicoInactivo
 	}
 
-	// Parseo de fechas usando el layout estándar de Go.
-	//
-	// "2006-01-02" NO es una fecha arbitraria.
-	// Go utiliza esta fecha específica como referencia
-	// para definir formatos.
-	fechaInicio, err := time.Parse("2006-01-02", req.FechaInicio)
+	// FECHA
+	fecha, err := time.Parse("2006-01-02", req.Fecha)
 	if err != nil {
-		return pkg.ErrFechaInvalida
+		return nil, pkg.ErrFechaInvalida
 	}
 
-	fechaFin, err := time.Parse("2006-01-02", req.FechaFin)
+	// HORA
+	horaInicio, err := time.Parse("15:04", req.HoraInicio)
 	if err != nil {
-		return pkg.ErrFechaInvalida
+		return nil, pkg.ErrHoraInvalida
 	}
 
-	// La fecha inicial no puede ser posterior a la final.
-	if fechaInicio.After(fechaFin) {
-		return pkg.ErrRangoFechasInvalido
+	// VALIDAR DIA SEMANA
+	if fecha.Weekday() != time.Weekday(agenda.DiaSemana%7) {
+		return nil, pkg.ErrAgendaInvalida
 	}
 
-	// Limita la generación a 90 días para evitar:
-	// - generación masiva accidental
-	// - consumo excesivo de memoria
-	// - demasiados inserts
-	if fechaFin.Sub(fechaInicio).Hours() > 24*90 {
-		return pkg.ErrRangoFechasExcedido
+	// CONSTRUIR DATETIME REAL
+	slotInicio := time.Date(
+		fecha.Year(), fecha.Month(), fecha.Day(),
+		horaInicio.Hour(), horaInicio.Minute(),
+		0, 0, time.UTC,
+	)
+
+	agendaInicio := time.Date(
+		fecha.Year(), fecha.Month(), fecha.Day(),
+		agenda.HoraInicio.Hour(), agenda.HoraInicio.Minute(),
+		0, 0, time.UTC,
+	)
+
+	agendaFin := time.Date(
+		fecha.Year(), fecha.Month(), fecha.Day(),
+		agenda.HoraFin.Hour(), agenda.HoraFin.Minute(),
+		0, 0, time.UTC,
+	)
+
+	if slotInicio.Before(agendaInicio) || !slotInicio.Before(agendaFin) {
+		return nil, pkg.ErrHorarioFueraAgenda
 	}
 
-	horaInicio := agenda.HoraInicio
-	horaFin := agenda.HoraFin
-
-	// Validación defensiva.
-	// Aunque ya existe CHECK en PostgreSQL,
-	// el dominio también valida consistencia.
-	if !horaFin.After(horaInicio) {
-		return pkg.ErrAgendaInvalida
-	}
-
-	// Convierte minutos enteros a Duration.
-	//
-	// Ejemplo:
-	// 30 -> 30m
 	duracion := time.Duration(agenda.DuracionTurno) * time.Minute
+	slotFin := slotInicio.Add(duracion)
 
-	// Recorre todas las fechas del rango.
-	for fecha := fechaInicio; !fecha.After(fechaFin); fecha = fecha.AddDate(0, 0, 1) {
-
-		// Filtra únicamente los días que coinciden
-		// con el día configurado en agenda.
-		//
-		// Weekday:
-		// Sunday = 0
-		// Monday = 1, etc
-		if fecha.Weekday() != time.Weekday(agenda.DiaSemana%7) {
-			continue
-		}
-
-		// Construye la fecha/hora real del inicio del slot.
-		//
-		// Combina:
-		// - fecha actual
-		// - hora de inicio de agenda
-		slotInicio := time.Date(
-			fecha.Year(),
-			fecha.Month(),
-			fecha.Day(),
-			horaInicio.Hour(),
-			horaInicio.Minute(),
-			0,
-			0,
-			time.UTC,
-		)
-
-		// Hora máxima permitida para generar slots.
-		slotFinLimite := time.Date(
-			fecha.Year(),
-			fecha.Month(),
-			fecha.Day(),
-			horaFin.Hour(),
-			horaFin.Minute(),
-			0,
-			0,
-			time.UTC,
-		)
-
-		// Genera slots consecutivos.
-		for slotInicio.Before(slotFinLimite) {
-
-			// Calcula el final del slot.
-			slotFin := slotInicio.Add(duracion)
-
-			// Evita generar turnos que excedan
-			// el horario configurado.
-			if slotFin.After(slotFinLimite) {
-				break
-			}
-
-			turno := &models.Turno{
-				AgendaID:   agenda.ID,
-				MedicoID:   agenda.MedicoID,
-				Fecha:      fecha,
-				HoraInicio: slotInicio,
-				HoraFin:    slotFin,
-				Estado:     models.EstadoDisponible,
-			}
-
-			err := s.repoTurno.CrearTurno(ctx, turno)
-			if err != nil {
-
-				var pqErr *pq.Error
-				// PostgreSQL:
-				// 23505 = unique_violation
-				//
-				// Si el slot ya existe:
-				// - se ignora
-				// - continúa la generación
-				//
-				// Esto hace que el proceso sea idempotente.
-
-				if errors.As(err, &pqErr) && pqErr.Code == "23505" {
-					slotInicio = slotInicio.Add(duracion)
-					continue
-				}
-
-				return err
-			}
-
-			// Avanza al siguiente bloque horario.
-			slotInicio = slotInicio.Add(duracion)
-		}
+	if slotFin.After(agendaFin) {
+		return nil, pkg.ErrHorarioFueraAgenda
 	}
 
-	return nil
+	if slotInicio.Before(time.Now()) {
+		return nil, pkg.ErrTurnoExpirado
+	}
+
+	turno := &models.Turno{
+		AgendaID:   agenda.ID,
+		MedicoID:   agenda.MedicoID,
+		PacienteID: nil,
+		Fecha:      fecha,
+		HoraInicio: slotInicio,
+		HoraFin:    slotFin,
+		Estado:     models.EstadoDisponible,
+	}
+
+	if err := s.repoTurno.CrearTurno(ctx, turno); err != nil {
+		return nil, err
+	}
+
+	return turno, nil
 }
 
 func (s *turnoService) ObtenerTurnoPorID(ctx context.Context, turnoID int64) (*models.Turno, error) {
