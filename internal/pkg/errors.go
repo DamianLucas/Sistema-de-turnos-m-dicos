@@ -52,9 +52,7 @@ var (
 	ErrActivarAgenda      = errors.New("error activando agenda")
 	ErrHoraInvalida       = errors.New("error hora invalida")
 
-	ErrFechaInvalida       = errors.New("error fecha invalida")
-	ErrRangoFechasInvalido = errors.New("error rango de fechas invalido")
-	ErrRangoFechasExcedido = errors.New("error rango de fecha excedido")
+	ErrFechaInvalida = errors.New("error fecha invalida")
 
 	//turnos
 	ErrTurnoNoDisponible   = errors.New("turno no disponible")
