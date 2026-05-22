@@ -2,6 +2,7 @@ package pkg
 
 import (
 	"errors"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -72,38 +73,23 @@ func Forbidden(c *gin.Context, err string) {
 }
 
 func HandleError(c *gin.Context, err error) {
-	switch {
+	var httpErr HTTPError
 
-	// ===== GENERALES =====
-	case errors.Is(err, ErrIDInvalido):
-		BadRequest(c, err.Error())
+	//buscamos si el error implementa el error
+	if errors.As(err, &httpErr) {
 
-	// ===== PACIENTES =====
-	case errors.Is(err, ErrPacienteNoEncontrado):
-		NotFound(c, err.Error())
+		JSON(c, httpErr.StatusCode(), ApiResponse{
+			Success: false,
+			Error:   httpErr.Error(),
+		})
 
-	case errors.Is(err, ErrPacienteInactivo):
-		BadRequest(c, err.Error())
-
-	// ===== MEDICOS =====
-	case errors.Is(err, ErrMedicoNoEncontrado):
-		NotFound(c, err.Error())
-
-	case errors.Is(err, ErrMedicoInactivo):
-		BadRequest(c, err.Error())
-
-	// ===== AGENDA =====
-	case errors.Is(err, ErrAgendaNoEncontrada):
-		NotFound(c, err.Error())
-
-	case errors.Is(err, ErrAgendaInactiva):
-		BadRequest(c, err.Error())
-
-	case errors.Is(err, ErrAgendaDuplicada):
-		BadRequest(c, err.Error())
-
-	// ===== DEFAULT =====
-	default:
-		InternalError(c)
+		return
 	}
+
+	// Error inesperado
+	log.Printf(
+		"[ERROR] method=%s path=%s error=%v", c.Request.Method, c.Request.URL.Path, err,
+	)
+
+	InternalError(c)
 }

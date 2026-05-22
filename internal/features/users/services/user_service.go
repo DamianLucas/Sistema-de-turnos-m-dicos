@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"turnos-medicos/internal/features/users/dto"
 	"turnos-medicos/internal/features/users/models"
@@ -83,7 +84,7 @@ func (s *userService) ObtenerUsuarioPorID(ctx context.Context, userID int64) (*m
 func (s *userService) ListarUsuariosActivos(ctx context.Context) ([]*models.User, error) {
 	users, err := s.repo.ListarUsuariosActivos(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", pkg.ErrListarUsuariosActivos, err)
+		return nil, fmt.Errorf("error al listar usuarios activos : %w", err)
 	}
 	return users, nil
 }
@@ -102,16 +103,18 @@ func (s *userService) ActualizarUsuario(ctx context.Context, id int64, req dto.A
 		return nil, pkg.ErrUsuarioInactivo
 	}
 
+	//helper local
+	actualizarSiValido := func(destino *string, valor string) {
+		if val := strings.TrimSpace(valor); val != "" {
+			*destino = val
+		}
+	}
 	// solo actualizar campos que vienen en el request
-	if req.Nombre != "" {
-		userActual.Nombre = req.Nombre
-	}
-	if req.Apellido != "" {
-		userActual.Apellido = req.Apellido
-	}
-	if req.Email != "" {
-		userActual.Email = req.Email
-	}
+	actualizarSiValido(&userActual.Nombre, req.Nombre)
+	actualizarSiValido(&userActual.Apellido, req.Apellido)
+	actualizarSiValido(&userActual.Email, req.Email)
+	actualizarSiValido(&userActual.Password, req.Password)
+
 	if req.Password != "" {
 		hashedPassword, err := pkg.HashPassword(req.Password)
 		if err != nil {
@@ -145,7 +148,7 @@ func (s *userService) DesactivarUsuario(ctx context.Context, userID int64) error
 	}
 
 	if err := s.repo.DesactivarUsuario(ctx, userID); err != nil {
-		return fmt.Errorf("%w: %v", pkg.ErrDesactivarUsuario, err)
+		return fmt.Errorf("desactivar usuario: %w", err)
 	}
 
 	return nil

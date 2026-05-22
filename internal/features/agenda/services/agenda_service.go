@@ -172,7 +172,7 @@ func (s *agendaService) DesactivarAgenda(ctx context.Context, id int64) error {
 	}
 
 	if err := s.repo.DesactivarAgenda(ctx, id); err != nil {
-		return fmt.Errorf("%w: %v", pkg.ErrDesactivarAgenda, err)
+		return fmt.Errorf("error al desactivar agenda: %w", err)
 	}
 
 	return nil
@@ -193,7 +193,7 @@ func (s *agendaService) ActivarAgenda(ctx context.Context, id int64) error {
 	}
 
 	if err := s.repo.ActivarAgenda(ctx, id); err != nil {
-		return fmt.Errorf("%w: %v", pkg.ErrActivarAgenda, err)
+		return fmt.Errorf("error al activar la agenda: %w", err)
 	}
 
 	return nil

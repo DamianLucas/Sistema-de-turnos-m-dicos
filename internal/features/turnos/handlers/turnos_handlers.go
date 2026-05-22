@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"strconv"
 	"turnos-medicos/internal/features/turnos/dto"
 	"turnos-medicos/internal/features/turnos/services"
 	"turnos-medicos/internal/pkg"
@@ -41,9 +40,7 @@ func (h *TurnoHandler) CrearTurno(c *gin.Context) {
 }
 
 func (h *TurnoHandler) ObtenerTurnoPorID(c *gin.Context) {
-	idStr := c.Param("id")
-
-	turnoID, err := strconv.ParseInt(idStr, 10, 64)
+	turnoID, err := pkg.ParseInt64Param(c, "id")
 	if err != nil {
 		pkg.BadRequest(c, pkg.ErrIDInvalido.Error())
 		return
@@ -58,9 +55,7 @@ func (h *TurnoHandler) ObtenerTurnoPorID(c *gin.Context) {
 }
 
 func (h *TurnoHandler) ListarTurnosPorMedico(c *gin.Context) {
-	idStr := c.Param("medicoID")
-
-	medicoID, err := strconv.ParseInt(idStr, 10, 64)
+	medicoID, err := pkg.ParseInt64Param(c, "medicoID")
 	if err != nil {
 		pkg.BadRequest(c, pkg.ErrIDInvalido.Error())
 		return
@@ -76,9 +71,7 @@ func (h *TurnoHandler) ListarTurnosPorMedico(c *gin.Context) {
 }
 
 func (h *TurnoHandler) ListarTurnosPorPaciente(c *gin.Context) {
-	idStr := c.Param("pacienteID")
-
-	pacienteID, err := strconv.ParseInt(idStr, 10, 64)
+	pacienteID, err := pkg.ParseInt64Param(c, "pacienteID")
 	if err != nil {
 		pkg.BadRequest(c, pkg.ErrIDInvalido.Error())
 		return
@@ -94,9 +87,7 @@ func (h *TurnoHandler) ListarTurnosPorPaciente(c *gin.Context) {
 }
 
 func (h *TurnoHandler) ListarTurnosDisponibles(c *gin.Context) {
-	medicoIDStr := c.Param("medicoID")
-
-	medicoID, err := strconv.ParseInt(medicoIDStr, 10, 64)
+	medicoID, err := pkg.ParseInt64Param(c, "medicoID")
 	if err != nil {
 		pkg.BadRequest(c, pkg.ErrIDInvalido.Error())
 		return
@@ -113,9 +104,7 @@ func (h *TurnoHandler) ListarTurnosDisponibles(c *gin.Context) {
 }
 
 func (h *TurnoHandler) ReservarTurno(c *gin.Context) {
-	idStr := c.Param("id")
-
-	turnoID, err := strconv.ParseInt(idStr, 10, 64)
+	turnoID, err := pkg.ParseInt64Param(c, "id")
 	if err != nil {
 		pkg.BadRequest(c, pkg.ErrIDInvalido.Error())
 		return
@@ -137,9 +126,7 @@ func (h *TurnoHandler) ReservarTurno(c *gin.Context) {
 }
 
 func (h *TurnoHandler) LiberarTurno(c *gin.Context) {
-	idStr := c.Param("id")
-
-	turnoID, err := strconv.ParseInt(idStr, 10, 64)
+	turnoID, err := pkg.ParseInt64Param(c, "id")
 	if err != nil {
 		pkg.BadRequest(c, pkg.ErrIDInvalido.Error())
 		return
@@ -156,9 +143,7 @@ func (h *TurnoHandler) LiberarTurno(c *gin.Context) {
 }
 
 func (h *TurnoHandler) MarcarTurnoAtendido(c *gin.Context) {
-	idStr := c.Param("id")
-
-	turnoID, err := strconv.ParseInt(idStr, 10, 64)
+	turnoID, err := pkg.ParseInt64Param(c, "id")
 	if err != nil {
 		pkg.BadRequest(c, pkg.ErrIDInvalido.Error())
 		return
@@ -175,10 +160,7 @@ func (h *TurnoHandler) MarcarTurnoAtendido(c *gin.Context) {
 }
 
 func (h *TurnoHandler) MarcarTurnoNoAsistio(c *gin.Context) {
-
-	idStr := c.Param("id")
-
-	turnoID, err := strconv.ParseInt(idStr, 10, 64)
+	turnoID, err := pkg.ParseInt64Param(c, "id")
 	if err != nil {
 		pkg.BadRequest(c, pkg.ErrIDInvalido.Error())
 		return

@@ -6,62 +6,164 @@ import (
 
 var (
 
-	//users
-	ErrUsuarioNoEncontrado   = errors.New("usuario no encontrado")
-	ErrUsuarioYaExiste       = errors.New("usuario ya existe")
-	ErrEmailDuplicado        = errors.New("email ya esta registrado")
-	ErrEmailRequerido        = errors.New("email es obligatorio")
-	ErrPasswordRequerido     = errors.New("password es obligatorio")
-	ErrCredencialesInvalidas = errors.New("credenciales invalidas")
-	ErrUsuarioInactivo       = errors.New("usuario inactivo")
-	ErrIDInvalido            = errors.New("id invalido")
-	ErrListarUsuariosActivos = errors.New("error al listar usuarios activos")
-	ErrDesactivarUsuario     = errors.New("error desactivando usuario")
+	// =========================================================
+	// GENERALES
+	// =========================================================
 
-	//medicos
-	ErrMedicoNoEncontrado   = errors.New("medico no encontrado")
-	ErrMedicoInactivo       = errors.New("medico inactivo")
-	ErrListarMedicosActivos = errors.New("error al listar medicos activos")
-	ErrDesactivarMedico     = errors.New("error desactivando medico")
-
-	ErrMatriculaDuplicada    = errors.New("matricula ya esta registrada")
-	ErrMatriculaRequerida    = errors.New("matricula requerida")
-	ErrEspecialidadRequerida = errors.New("especialidad requerida")
-
-	//pacientes
-	ErrPacienteNoEncontrado     = errors.New("paciente no encontrado")
-	ErrPacienteInactivo         = errors.New("paciente inactivo")
-	ErrDNIDuplicado             = errors.New("DNI duplicado")
-	ErrDNIrequerido             = errors.New("DNI requiro")
-	ErrDNIInvalido              = errors.New("DNI invalido")
-	ErrListarPacientesActivos   = errors.New("error al listar pacientes activos")
-	ErrDesactivarPaciente       = errors.New("error desactivando paciente")
-	ErrPacienteYaActivo         = errors.New("paciente ya activo")
-	ErrActivarPaciente          = errors.New("error al activar paciente")
-	ErrActualizarPaciente       = errors.New("error al actualizar paciente")
-	ErrAsignarMedicoPaciente    = errors.New("error al asignar medico tratante")
-	ErrQuitarMedicoPaciente     = errors.New("error al quitar medico tratante")
-	ErrListarPacientesPorMedico = errors.New("error al listar pacientes por medico")
-
-	//agenda
-	ErrAgendaNoEncontrada = errors.New("agenda no encontrada")
-	ErrAgendaDuplicada    = errors.New("agenda ya existe para ese día")
-	ErrAgendaInvalida     = errors.New("datos de agenda inválidos")
-	ErrAgendaInactiva     = errors.New("agenda inactiva")
-	ErrDesactivarAgenda   = errors.New("error desactivando agenda")
-	ErrActivarAgenda      = errors.New("error activando agenda")
-	ErrHoraInvalida       = errors.New("error hora invalida")
-
-	ErrFechaInvalida = errors.New("error fecha invalida")
-
-	//turnos
-	ErrTurnoNoDisponible   = errors.New("turno no disponible")
-	ErrTurnoNoEncontrado   = errors.New("turno no encontrado")
-	ErrTurnoExpirado       = errors.New("turno expirado")
-	ErrTurnoNoReservado    = errors.New("turno no reservado")
-	ErrTurnoSinPaciente    = errors.New("turno sin paciente asignado")
-	ErrEstadoTurnoInvalido = errors.New("error estado de turno invalido")
-	ErrHorarioFueraAgenda  = errors.New("horario fuera de agenda")
+	ErrIDInvalido    = NewBadRequestError("id invalido")
+	ErrHoraInvalida  = NewBadRequestError("hora invalida")
+	ErrFechaInvalida = NewBadRequestError("fecha invalida")
 
 	ErrErrorPersistencia = errors.New("error interno de persistencia")
+
+	// =========================================================
+	// USERS
+	// =========================================================
+
+	// NOT FOUND
+	ErrUsuarioNoEncontrado = NewNotFoundError(
+		"usuario no encontrado",
+	)
+
+	// BAD REQUEST
+	ErrUsuarioInactivo = NewBadRequestError(
+		"usuario inactivo",
+	)
+
+	ErrEmailRequerido = NewBadRequestError(
+		"email es obligatorio",
+	)
+
+	ErrPasswordRequerido = NewBadRequestError(
+		"password es obligatorio",
+	)
+
+	// CONFLICT
+	ErrUsuarioYaExiste = NewConflictError(
+		"usuario ya existe",
+	)
+
+	ErrEmailDuplicado = NewConflictError(
+		"email ya esta registrado",
+	)
+
+	// UNAUTHORIZED
+	ErrCredencialesInvalidas = NewUnauthorizedError(
+		"credenciales invalidas",
+	)
+
+	// =========================================================
+	// MEDICOS
+	// =========================================================
+
+	// NOT FOUND
+	ErrMedicoNoEncontrado = NewNotFoundError(
+		"medico no encontrado",
+	)
+
+	// BAD REQUEST
+	ErrMedicoInactivo = NewBadRequestError(
+		"medico inactivo",
+	)
+
+	ErrMatriculaRequerida = NewBadRequestError(
+		"matricula requerida",
+	)
+
+	ErrEspecialidadRequerida = NewBadRequestError(
+		"especialidad requerida",
+	)
+
+	// CONFLICT
+	ErrMatriculaDuplicada = NewConflictError(
+		"matricula ya esta registrada",
+	)
+
+	// =========================================================
+	// PACIENTES
+	// =========================================================
+
+	// NOT FOUND
+	ErrPacienteNoEncontrado = NewNotFoundError(
+		"paciente no encontrado",
+	)
+
+	// BAD REQUEST
+	ErrPacienteInactivo = NewBadRequestError(
+		"paciente inactivo",
+	)
+
+	ErrPacienteYaActivo = NewBadRequestError(
+		"paciente ya activo",
+	)
+
+	ErrDNIInvalido = NewBadRequestError(
+		"DNI invalido",
+	)
+
+	ErrDNIrequerido = NewBadRequestError(
+		"DNI requerido",
+	)
+
+	// CONFLICT
+	ErrDNIDuplicado = NewConflictError(
+		"DNI duplicado",
+	)
+
+	// =========================================================
+	// AGENDA
+	// =========================================================
+
+	// NOT FOUND
+	ErrAgendaNoEncontrada = NewNotFoundError(
+		"agenda no encontrada",
+	)
+
+	// BAD REQUEST
+	ErrAgendaInvalida = NewBadRequestError(
+		"datos de agenda invalidos",
+	)
+
+	ErrAgendaInactiva = NewBadRequestError(
+		"agenda inactiva",
+	)
+
+	// CONFLICT
+	ErrAgendaDuplicada = NewConflictError(
+		"agenda ya existe para ese dia",
+	)
+
+	// =========================================================
+	// TURNOS
+	// =========================================================
+
+	// NOT FOUND
+	ErrTurnoNoEncontrado = NewNotFoundError(
+		"turno no encontrado",
+	)
+
+	// BAD REQUEST
+	ErrTurnoNoDisponible = NewBadRequestError(
+		"turno no disponible",
+	)
+
+	ErrTurnoExpirado = NewBadRequestError(
+		"turno expirado",
+	)
+
+	ErrTurnoNoReservado = NewBadRequestError(
+		"turno no reservado",
+	)
+
+	ErrTurnoSinPaciente = NewBadRequestError(
+		"turno sin paciente asignado",
+	)
+
+	ErrEstadoTurnoInvalido = NewBadRequestError(
+		"estado de turno invalido",
+	)
+
+	ErrHorarioFueraAgenda = NewBadRequestError(
+		"horario fuera de agenda",
+	)
 )

@@ -457,7 +457,7 @@ func (r *PacientePostgresRepository) ListarPacientesPorMedico(ctx context.Contex
 	return pacientes, nil
 }
 
-// Si bien este metodo rompe un poco el diseño ya que es un metodo que se usa en otro metodo (DesactivarMedico),
+// este metodo rompe un poco el diseño ya que es un metodo que se usa en otro metodo (DesactivarMedico),
 // pero la interface lo reclama asi que por el momento quedara.
 func (r *PacientePostgresRepository) RemoverMedicoDePacientes(ctx context.Context, medicoID int64) error {
 

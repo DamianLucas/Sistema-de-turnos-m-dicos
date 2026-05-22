@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"errors"
-	"strconv"
 	"turnos-medicos/internal/features/medicos/dto"
 	"turnos-medicos/internal/features/medicos/models"
 	"turnos-medicos/internal/features/medicos/services"
@@ -58,8 +57,7 @@ func (h *MedicoHandler) CrearMedico(c *gin.Context) {
 }
 
 func (h *MedicoHandler) ObtenerMedicoPorID(c *gin.Context) {
-	idStr := c.Param("id")
-	id, err := strconv.ParseInt(idStr, 10, 64)
+	id, err := pkg.ParseInt64Param(c, "id")
 
 	if err != nil {
 		pkg.BadRequest(c, "ID invalido")
@@ -136,8 +134,7 @@ func (h *MedicoHandler) ListarMedicos(c *gin.Context) {
 }
 
 func (h *MedicoHandler) ActualizarMedico(c *gin.Context) {
-	idStr := c.Param("id")
-	medicoID, err := strconv.ParseInt(idStr, 10, 64)
+	medicoID, err := pkg.ParseInt64Param(c, "id")
 	if err != nil {
 		pkg.BadRequest(c, "ID invalido")
 		return
@@ -167,9 +164,7 @@ func (h *MedicoHandler) ActualizarMedico(c *gin.Context) {
 }
 
 func (h *MedicoHandler) DesactivarMedico(c *gin.Context) {
-	idStr := c.Param("id")
-
-	medicoID, err := strconv.ParseInt(idStr, 10, 64)
+	medicoID, err := pkg.ParseInt64Param(c, "id")
 	if err != nil {
 		pkg.BadRequest(c, "ID inválido")
 		return
@@ -200,8 +195,7 @@ func (h *MedicoHandler) DesactivarMedico(c *gin.Context) {
 }
 
 func (h *MedicoHandler) ActivarMedico(c *gin.Context) {
-	idStr := c.Param("id")
-	medicoID, err := strconv.ParseInt(idStr, 10, 64)
+	medicoID, err := pkg.ParseInt64Param(c, "id")
 	if err != nil {
 		pkg.BadRequest(c, "ID invalido")
 		return
@@ -223,8 +217,7 @@ func (h *MedicoHandler) ActivarMedico(c *gin.Context) {
 }
 
 func (h *MedicoHandler) ListarPacientesPorMedico(c *gin.Context) {
-	idStr := c.Param("id")
-	medicoID, err := strconv.ParseInt(idStr, 10, 64)
+	medicoID, err := pkg.ParseInt64Param(c, "id")
 	if err != nil {
 		pkg.BadRequest(c, pkg.ErrIDInvalido.Error())
 		return

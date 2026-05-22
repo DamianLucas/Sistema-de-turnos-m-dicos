@@ -1,10 +1,8 @@
 package dto
 
 type CrearTurnoRequest struct {
-	AgendaID int64 `json:"agenda_id" binding:"required"`
-
-	Fecha string `json:"fecha" binding:"required"`
-
+	AgendaID   int64  `json:"agenda_id" binding:"required"`
+	Fecha      string `json:"fecha" binding:"required"`
 	HoraInicio string `json:"hora_inicio" binding:"required"`
 }
 

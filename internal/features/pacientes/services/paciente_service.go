@@ -106,7 +106,7 @@ func (s *pacienteService) ObtenerPacientePorDNI(ctx context.Context, dni string)
 func (s *pacienteService) ListarPacientesActivos(ctx context.Context) ([]*models.Paciente, error) {
 	pacientes, err := s.repoPaciente.ListarPacientesActivos(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %v", pkg.ErrListarPacientesActivos, err)
+		return nil, fmt.Errorf("error al listar pacientes activos: %w", err)
 	}
 	return pacientes, nil
 }
@@ -126,7 +126,7 @@ func (s *pacienteService) DesactivarPaciente(ctx context.Context, pacienteID int
 	}
 
 	if err := s.repoPaciente.DesactivarPaciente(ctx, pacienteID); err != nil {
-		return fmt.Errorf("%w: %v", pkg.ErrDesactivarPaciente, err)
+		return fmt.Errorf("error al desactivar paciente %w", err)
 	}
 
 	return nil
@@ -146,7 +146,7 @@ func (s *pacienteService) ActivarPaciente(ctx context.Context, pacienteID int64)
 	}
 
 	if err := s.repoPaciente.ActivarPaciente(ctx, pacienteID); err != nil {
-		return pkg.ErrActivarPaciente
+		return fmt.Errorf("activar paciente: %w", err)
 	}
 
 	return nil
@@ -181,7 +181,7 @@ func (s *pacienteService) ActualizarPaciente(ctx context.Context, pacienteID int
 	actualizarSiValido(&paciente.ObraSocial, req.ObraSocial)
 
 	if err := s.repoPaciente.ActualizarPaciente(ctx, paciente); err != nil {
-		return nil, fmt.Errorf("%w: %v", pkg.ErrActualizarPaciente, err)
+		return nil, fmt.Errorf("error al actualizar paciente %w", err)
 	}
 
 	return paciente, nil
@@ -213,7 +213,7 @@ func (s *pacienteService) AsignarMedicoTratante(ctx context.Context, pacienteID,
 	}
 
 	if err := s.repoPaciente.AsignarMedicoTratante(ctx, pacienteID, medicoID); err != nil {
-		return fmt.Errorf("%w", pkg.ErrAsignarMedicoPaciente)
+		return fmt.Errorf("error al asignar medico: %w", err)
 	}
 
 	return nil
@@ -238,7 +238,7 @@ func (s *pacienteService) QuitarMedicoTratante(ctx context.Context, pacienteID i
 	}
 
 	if err := s.repoPaciente.QuitarMedicoTratante(ctx, pacienteID); err != nil {
-		return fmt.Errorf("%w", pkg.ErrQuitarMedicoPaciente)
+		return fmt.Errorf("error al quitar medico del paciente: %w", err)
 	}
 
 	return nil
@@ -260,7 +260,7 @@ func (s *pacienteService) ListarPacientesPorMedico(ctx context.Context, medicoID
 
 	pacientes, err := s.repoPaciente.ListarPacientesPorMedico(ctx, medicoID)
 	if err != nil {
-		return nil, fmt.Errorf("%w", pkg.ErrListarPacientesPorMedico)
+		return nil, fmt.Errorf("error al listar paciente por medico: %w", err)
 	}
 
 	return pacientes, nil

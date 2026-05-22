@@ -27,7 +27,7 @@ func Start() {
 		gin.Recovery(),
 		cors.New(cors.Config{
 			AllowOrigins: []string{"*"},
-			AllowMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+			AllowMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 			AllowHeaders: []string{"Origin", "Content-Type", "Authorization"},
 			MaxAge:       12 * time.Hour,
 		}),

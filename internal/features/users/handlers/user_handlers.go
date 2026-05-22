@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"errors"
-	"strconv"
 	"turnos-medicos/internal/features/users/dto"
 	"turnos-medicos/internal/features/users/services"
 	"turnos-medicos/internal/pkg"
@@ -20,7 +19,6 @@ func NewUserHandler(s services.UserService) *UserHandler {
 
 //handlers del service
 
-// CrearUsuario
 func (h *UserHandler) CrearUsuario(c *gin.Context) {
 
 	var req dto.CrearUsuarioRequest
@@ -47,11 +45,9 @@ func (h *UserHandler) CrearUsuario(c *gin.Context) {
 
 // ObtenerUsuarioPorID
 func (h *UserHandler) ObtenerUsuarioPorID(c *gin.Context) {
-	idStr := c.Param("id")
-	id, err := strconv.ParseInt(idStr, 10, 64)
-
+	id, err := pkg.ParseInt64Param(c, "id")
 	if err != nil {
-		pkg.BadRequest(c, "ID invalido")
+		pkg.BadRequest(c, "id invalido")
 		return
 	}
 
@@ -83,10 +79,9 @@ func (h *UserHandler) ListarUsuariosActivos(c *gin.Context) {
 
 // ActualizarUsuarios
 func (h *UserHandler) ActualizarUsuario(c *gin.Context) {
-	idStr := c.Param("id")
-	userID, err := strconv.ParseInt(idStr, 10, 64)
+	userID, err := pkg.ParseInt64Param(c, "id")
 	if err != nil {
-		pkg.BadRequest(c, "ID invalido")
+		pkg.BadRequest(c, "id invalido")
 		return
 	}
 
@@ -111,10 +106,9 @@ func (h *UserHandler) ActualizarUsuario(c *gin.Context) {
 
 // DesactivarUsuario
 func (h *UserHandler) DesactivarUsuario(c *gin.Context) {
-	idStr := c.Param("id")
-	userID, err := strconv.ParseInt(idStr, 10, 64)
+	userID, err := pkg.ParseInt64Param(c, "id")
 	if err != nil {
-		pkg.BadRequest(c, "ID invalido")
+		pkg.BadRequest(c, "id invalido")
 		return
 	}
 

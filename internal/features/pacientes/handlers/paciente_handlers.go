@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"errors"
-	"strconv"
 	"turnos-medicos/internal/features/pacientes/dto"
 	"turnos-medicos/internal/features/pacientes/services"
 	"turnos-medicos/internal/pkg"
@@ -48,9 +47,7 @@ func (h *PacienteHandler) CrearPaciente(c *gin.Context) {
 }
 
 func (h *PacienteHandler) ObtenerPacientePorID(c *gin.Context) {
-	idStr := c.Param("id")
-
-	id, err := strconv.ParseInt(idStr, 10, 64)
+	id, err := pkg.ParseInt64Param(c, "id")
 	if err != nil {
 		pkg.BadRequest(c, "ID invalido")
 		return
@@ -106,9 +103,7 @@ func (h *PacienteHandler) ListarPacientesActivos(c *gin.Context) {
 }
 
 func (h *PacienteHandler) DesactivarPaciente(c *gin.Context) {
-	idStr := c.Param("id")
-
-	pacienteID, err := strconv.ParseInt(idStr, 10, 64)
+	pacienteID, err := pkg.ParseInt64Param(c, "id")
 	if err != nil {
 		pkg.BadRequest(c, pkg.ErrIDInvalido.Error())
 		return
@@ -140,9 +135,7 @@ func (h *PacienteHandler) DesactivarPaciente(c *gin.Context) {
 }
 
 func (h *PacienteHandler) ActivarPaciente(c *gin.Context) {
-	idStr := c.Param("id")
-
-	pacienteID, err := strconv.ParseInt(idStr, 10, 64)
+	pacienteID, err := pkg.ParseInt64Param(c, "id")
 	if err != nil {
 		pkg.BadRequest(c, pkg.ErrIDInvalido.Error())
 		return
@@ -174,9 +167,7 @@ func (h *PacienteHandler) ActivarPaciente(c *gin.Context) {
 }
 
 func (h *PacienteHandler) ActualizarPaciente(c *gin.Context) {
-	idStr := c.Param("id")
-
-	pacienteID, err := strconv.ParseInt(idStr, 10, 64)
+	pacienteID, err := pkg.ParseInt64Param(c, "id")
 	if err != nil {
 		pkg.BadRequest(c, pkg.ErrIDInvalido.Error())
 		return
@@ -207,15 +198,13 @@ func (h *PacienteHandler) ActualizarPaciente(c *gin.Context) {
 }
 
 func (h *PacienteHandler) AsignarMedicoTratante(c *gin.Context) {
-	idStr := c.Param("id")
-	pacienteID, err := strconv.ParseInt(idStr, 10, 64)
+	pacienteID, err := pkg.ParseInt64Param(c, "id")
 	if err != nil {
 		pkg.BadRequest(c, pkg.ErrIDInvalido.Error())
 		return
 	}
 
-	medicoIDStr := c.Param("medicoID")
-	medicoID, err := strconv.ParseInt(medicoIDStr, 10, 64)
+	medicoID, err := pkg.ParseInt64Param(c, "medicoID")
 	if err != nil {
 		pkg.BadRequest(c, pkg.ErrIDInvalido.Error())
 		return
@@ -231,9 +220,7 @@ func (h *PacienteHandler) AsignarMedicoTratante(c *gin.Context) {
 }
 
 func (h *PacienteHandler) QuitarMedicoTratante(c *gin.Context) {
-	idStr := c.Param("id")
-
-	pacienteID, err := strconv.ParseInt(idStr, 10, 64)
+	pacienteID, err := pkg.ParseInt64Param(c, "id")
 	if err != nil {
 		pkg.BadRequest(c, pkg.ErrIDInvalido.Error())
 		return

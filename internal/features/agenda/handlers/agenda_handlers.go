@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"strconv"
 	"turnos-medicos/internal/features/agenda/dto"
 	"turnos-medicos/internal/features/agenda/services"
 	"turnos-medicos/internal/pkg"
@@ -18,9 +17,7 @@ func NewAgendaHandler(s services.AgendaService) *AgendaHandler {
 }
 
 func (h *AgendaHandler) CrearAgenda(c *gin.Context) {
-	medicoIDStr := c.Param("medicoID")
-
-	medicoID, err := strconv.ParseInt(medicoIDStr, 10, 64)
+	medicoID, err := pkg.ParseInt64Param(c, "medicoID")
 	if err != nil {
 		pkg.BadRequest(c, pkg.ErrIDInvalido.Error())
 		return
@@ -43,9 +40,7 @@ func (h *AgendaHandler) CrearAgenda(c *gin.Context) {
 }
 
 func (h *AgendaHandler) ObtenerAgendaPorID(c *gin.Context) {
-	agendaIDStr := c.Param("id")
-
-	agendaID, err := strconv.ParseInt(agendaIDStr, 10, 64)
+	agendaID, err := pkg.ParseInt64Param(c, "id")
 	if err != nil {
 		pkg.BadRequest(c, pkg.ErrIDInvalido.Error())
 		return
@@ -61,9 +56,7 @@ func (h *AgendaHandler) ObtenerAgendaPorID(c *gin.Context) {
 }
 
 func (h *AgendaHandler) ListarAgendasPorMedico(c *gin.Context) {
-	medicoIDStr := c.Param("medicoID")
-
-	medicoID, err := strconv.ParseInt(medicoIDStr, 10, 64)
+	medicoID, err := pkg.ParseInt64Param(c, "medicoID")
 	if err != nil {
 		pkg.BadRequest(c, pkg.ErrIDInvalido.Error())
 		return
@@ -80,9 +73,7 @@ func (h *AgendaHandler) ListarAgendasPorMedico(c *gin.Context) {
 }
 
 func (h *AgendaHandler) ActualizarAgenda(c *gin.Context) {
-	agendaIDStr := c.Param("id")
-
-	agendaID, err := strconv.ParseInt(agendaIDStr, 10, 64)
+	agendaID, err := pkg.ParseInt64Param(c, "id")
 	if err != nil {
 		pkg.BadRequest(c, pkg.ErrIDInvalido.Error())
 		return
@@ -104,9 +95,7 @@ func (h *AgendaHandler) ActualizarAgenda(c *gin.Context) {
 }
 
 func (h *AgendaHandler) DesactivarAgenda(c *gin.Context) {
-	agendaIDStr := c.Param("id")
-
-	agendaID, err := strconv.ParseInt(agendaIDStr, 10, 64)
+	agendaID, err := pkg.ParseInt64Param(c, "id")
 	if err != nil {
 		pkg.BadRequest(c, pkg.ErrIDInvalido.Error())
 		return
@@ -124,9 +113,7 @@ func (h *AgendaHandler) DesactivarAgenda(c *gin.Context) {
 }
 
 func (h *AgendaHandler) ActivarAgenda(c *gin.Context) {
-	agendaIDStr := c.Param("id")
-
-	agendaID, err := strconv.ParseInt(agendaIDStr, 10, 64)
+	agendaID, err := pkg.ParseInt64Param(c, "id")
 	if err != nil {
 		pkg.BadRequest(c, pkg.ErrIDInvalido.Error())
 		return
