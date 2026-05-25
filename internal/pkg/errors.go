@@ -16,6 +16,8 @@ var (
 
 	ErrErrorPersistencia = errors.New("error interno de persistencia")
 
+	ErrForbidden = NewForbiddenError("no autorizado para acceder a este recurso")
+
 	// =========================================================
 	// USERS
 	// =========================================================

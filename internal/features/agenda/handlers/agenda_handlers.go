@@ -3,6 +3,7 @@ package handlers
 import (
 	"turnos-medicos/internal/features/agenda/dto"
 	"turnos-medicos/internal/features/agenda/services"
+	"turnos-medicos/internal/middleware"
 	"turnos-medicos/internal/pkg"
 
 	"github.com/gin-gonic/gin"
@@ -19,7 +20,7 @@ func NewAgendaHandler(s services.AgendaService) *AgendaHandler {
 func (h *AgendaHandler) CrearAgenda(c *gin.Context) {
 	medicoID, err := pkg.ParseInt64Param(c, "medicoID")
 	if err != nil {
-		pkg.BadRequest(c, pkg.ErrIDInvalido.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 
@@ -42,11 +43,15 @@ func (h *AgendaHandler) CrearAgenda(c *gin.Context) {
 func (h *AgendaHandler) ObtenerAgendaPorID(c *gin.Context) {
 	agendaID, err := pkg.ParseInt64Param(c, "id")
 	if err != nil {
-		pkg.BadRequest(c, pkg.ErrIDInvalido.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 
-	agenda, err := h.service.ObtenerAgendaPorID(c.Request.Context(), agendaID)
+	//usuario autenticado
+	authUserID := middleware.GetUserID(c)
+	authRol := middleware.GetUserRol(c)
+
+	agenda, err := h.service.ObtenerAgendaPorID(c.Request.Context(), authUserID, authRol, agendaID)
 	if err != nil {
 		pkg.HandleError(c, err)
 		return
@@ -58,11 +63,15 @@ func (h *AgendaHandler) ObtenerAgendaPorID(c *gin.Context) {
 func (h *AgendaHandler) ListarAgendasPorMedico(c *gin.Context) {
 	medicoID, err := pkg.ParseInt64Param(c, "medicoID")
 	if err != nil {
-		pkg.BadRequest(c, pkg.ErrIDInvalido.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 
-	listarAgenda, err := h.service.ListarAgendasPorMedico(c.Request.Context(), medicoID)
+	//usuario autenticado
+	authUserID := middleware.GetUserID(c)
+	authRol := middleware.GetUserRol(c)
+
+	listarAgenda, err := h.service.ListarAgendasPorMedico(c.Request.Context(), authUserID, authRol, medicoID)
 	if err != nil {
 		pkg.HandleError(c, err)
 		return
@@ -75,7 +84,7 @@ func (h *AgendaHandler) ListarAgendasPorMedico(c *gin.Context) {
 func (h *AgendaHandler) ActualizarAgenda(c *gin.Context) {
 	agendaID, err := pkg.ParseInt64Param(c, "id")
 	if err != nil {
-		pkg.BadRequest(c, pkg.ErrIDInvalido.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 
@@ -85,7 +94,11 @@ func (h *AgendaHandler) ActualizarAgenda(c *gin.Context) {
 		return
 	}
 
-	agenda, err := h.service.ActualizarAgenda(c.Request.Context(), agendaID, req)
+	//usuario autenticado
+	authUserID := middleware.GetUserID(c)
+	authRol := middleware.GetUserRol(c)
+
+	agenda, err := h.service.ActualizarAgenda(c.Request.Context(), authUserID, authRol, agendaID, req)
 	if err != nil {
 		pkg.HandleError(c, err)
 		return
@@ -97,11 +110,14 @@ func (h *AgendaHandler) ActualizarAgenda(c *gin.Context) {
 func (h *AgendaHandler) DesactivarAgenda(c *gin.Context) {
 	agendaID, err := pkg.ParseInt64Param(c, "id")
 	if err != nil {
-		pkg.BadRequest(c, pkg.ErrIDInvalido.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 
-	err = h.service.DesactivarAgenda(c.Request.Context(), agendaID)
+	authUserID := middleware.GetUserID(c)
+	authRol := middleware.GetUserRol(c)
+
+	err = h.service.DesactivarAgenda(c.Request.Context(), authUserID, authRol, agendaID)
 
 	if err != nil {
 		pkg.HandleError(c, err)
@@ -115,11 +131,14 @@ func (h *AgendaHandler) DesactivarAgenda(c *gin.Context) {
 func (h *AgendaHandler) ActivarAgenda(c *gin.Context) {
 	agendaID, err := pkg.ParseInt64Param(c, "id")
 	if err != nil {
-		pkg.BadRequest(c, pkg.ErrIDInvalido.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 
-	err = h.service.ActivarAgenda(c.Request.Context(), agendaID)
+	authUserID := middleware.GetUserID(c)
+	authRol := middleware.GetUserRol(c)
+
+	err = h.service.ActivarAgenda(c.Request.Context(), authUserID, authRol, agendaID)
 	if err != nil {
 		pkg.HandleError(c, err)
 		return

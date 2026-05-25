@@ -7,6 +7,7 @@ import (
 	"strings"
 	"turnos-medicos/internal/features/pacientes/dto"
 	"turnos-medicos/internal/features/pacientes/models"
+	userModel "turnos-medicos/internal/features/users/models"
 	"turnos-medicos/internal/pkg"
 
 	repositoryMedico "turnos-medicos/internal/features/medicos/repository"
@@ -23,7 +24,7 @@ type PacienteService interface {
 	ActualizarPaciente(ctx context.Context, pacienteID int64, req dto.ActualizarPacienteRequest) (*models.Paciente, error)
 	AsignarMedicoTratante(ctx context.Context, pacienteID, medicoID int64) error
 	QuitarMedicoTratante(ctx context.Context, pacienteID int64) error
-	ListarPacientesPorMedico(ctx context.Context, medicoID int64) ([]*models.Paciente, error)
+	ListarPacientesPorMedico(ctx context.Context, authUserID int64, authRol userModel.Rol, medicoID int64) ([]*models.Paciente, error)
 }
 
 type pacienteService struct {
@@ -244,7 +245,7 @@ func (s *pacienteService) QuitarMedicoTratante(ctx context.Context, pacienteID i
 	return nil
 }
 
-func (s *pacienteService) ListarPacientesPorMedico(ctx context.Context, medicoID int64) ([]*models.Paciente, error) {
+func (s *pacienteService) ListarPacientesPorMedico(ctx context.Context, authUserID int64, authRol userModel.Rol, medicoID int64) ([]*models.Paciente, error) {
 	if medicoID <= 0 {
 		return nil, pkg.ErrIDInvalido
 	}
@@ -256,6 +257,13 @@ func (s *pacienteService) ListarPacientesPorMedico(ctx context.Context, medicoID
 
 	if !medico.Activo {
 		return nil, pkg.ErrMedicoInactivo
+	}
+
+	if authRol == userModel.RolMedico {
+
+		if medico.UserID != authUserID {
+			return nil, pkg.ErrForbidden
+		}
 	}
 
 	pacientes, err := s.repoPaciente.ListarPacientesPorMedico(ctx, medicoID)

@@ -6,6 +6,8 @@ import (
 	"time"
 	"turnos-medicos/internal/features/agenda/dto"
 	"turnos-medicos/internal/features/agenda/models"
+	userModel "turnos-medicos/internal/features/users/models"
+
 	agendaRepo "turnos-medicos/internal/features/agenda/repository"
 	medicoRepo "turnos-medicos/internal/features/medicos/repository"
 	"turnos-medicos/internal/pkg"
@@ -13,11 +15,11 @@ import (
 
 type AgendaService interface {
 	CrearAgenda(ctx context.Context, medicoID int64, req dto.CrearAgendaRequest) (*models.Agenda, error)
-	ObtenerAgendaPorID(ctx context.Context, agendaID int64) (*models.Agenda, error)
-	ListarAgendasPorMedico(ctx context.Context, medicoID int64) ([]*models.Agenda, error)
-	ActualizarAgenda(ctx context.Context, agendaID int64, req dto.ActualizarAgendaRequest) (*models.Agenda, error)
-	DesactivarAgenda(ctx context.Context, id int64) error
-	ActivarAgenda(ctx context.Context, id int64) error
+	ObtenerAgendaPorID(ctx context.Context, authUserID int64, authRol userModel.Rol, agendaID int64) (*models.Agenda, error)
+	ListarAgendasPorMedico(ctx context.Context, authUserID int64, authRol userModel.Rol, medicoID int64) ([]*models.Agenda, error)
+	ActualizarAgenda(ctx context.Context, authUserID int64, authRol userModel.Rol, agendaID int64, req dto.ActualizarAgendaRequest) (*models.Agenda, error)
+	DesactivarAgenda(ctx context.Context, authUserID int64, authRol userModel.Rol, id int64) error
+	ActivarAgenda(ctx context.Context, authUserID int64, authRol userModel.Rol, id int64) error
 }
 
 type agendaService struct {
@@ -75,7 +77,7 @@ func (s *agendaService) CrearAgenda(ctx context.Context, medicoID int64, req dto
 	return agenda, nil
 }
 
-func (s *agendaService) ObtenerAgendaPorID(ctx context.Context, agendaID int64) (*models.Agenda, error) {
+func (s *agendaService) ObtenerAgendaPorID(ctx context.Context, authUserID int64, authRol userModel.Rol, agendaID int64) (*models.Agenda, error) {
 	if agendaID <= 0 {
 		return nil, pkg.ErrIDInvalido
 	}
@@ -85,11 +87,27 @@ func (s *agendaService) ObtenerAgendaPorID(ctx context.Context, agendaID int64) 
 		return nil, err
 	}
 
+	// OWNERSHIP
+	if authRol == userModel.RolMedico {
+
+		medico, err := s.repoMedico.ObtenerMedicoPorID(
+			ctx,
+			agenda.MedicoID,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		if medico.UserID != authUserID {
+			return nil, pkg.ErrForbidden
+		}
+	}
+
 	return agenda, err
 
 }
 
-func (s *agendaService) ListarAgendasPorMedico(ctx context.Context, medicoID int64) ([]*models.Agenda, error) {
+func (s *agendaService) ListarAgendasPorMedico(ctx context.Context, authUserID int64, authRol userModel.Rol, medicoID int64) ([]*models.Agenda, error) {
 	if medicoID <= 0 {
 		return nil, pkg.ErrIDInvalido
 	}
@@ -103,19 +121,27 @@ func (s *agendaService) ListarAgendasPorMedico(ctx context.Context, medicoID int
 		return nil, pkg.ErrMedicoInactivo
 	}
 
+	// OWNERSHIP
+	if authRol == userModel.RolMedico {
+
+		if medico.UserID != authUserID {
+			return nil, pkg.ErrForbidden
+		}
+	}
+
 	agendas, err := s.repo.ListarAgendasPorMedico(ctx, medicoID)
 	if err != nil {
 		return nil, err
 	}
 
 	if agendas == nil {
-		agendas = []*models.Agenda{}
+		return []*models.Agenda{}, nil
 	}
 
 	return agendas, nil
 }
 
-func (s *agendaService) ActualizarAgenda(ctx context.Context, agendaID int64, req dto.ActualizarAgendaRequest) (*models.Agenda, error) {
+func (s *agendaService) ActualizarAgenda(ctx context.Context, authUserID int64, authRol userModel.Rol, agendaID int64, req dto.ActualizarAgendaRequest) (*models.Agenda, error) {
 	if agendaID <= 0 {
 		return nil, pkg.ErrIDInvalido
 	}
@@ -127,6 +153,22 @@ func (s *agendaService) ActualizarAgenda(ctx context.Context, agendaID int64, re
 
 	if !agendaActual.Activo {
 		return nil, pkg.ErrAgendaInactiva
+	}
+
+	// OWNERSHIP
+	if authRol == userModel.RolMedico {
+
+		medico, err := s.repoMedico.ObtenerMedicoPorID(
+			ctx,
+			agendaActual.MedicoID,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		if medico.UserID != authUserID {
+			return nil, pkg.ErrForbidden
+		}
 	}
 
 	const layout = "15:04"
@@ -157,7 +199,7 @@ func (s *agendaService) ActualizarAgenda(ctx context.Context, agendaID int64, re
 	return agendaActual, nil
 }
 
-func (s *agendaService) DesactivarAgenda(ctx context.Context, id int64) error {
+func (s *agendaService) DesactivarAgenda(ctx context.Context, authUserID int64, authRol userModel.Rol, id int64) error {
 	if id <= 0 {
 		return pkg.ErrIDInvalido
 	}
@@ -171,6 +213,22 @@ func (s *agendaService) DesactivarAgenda(ctx context.Context, id int64) error {
 		return nil
 	}
 
+	// OWNERSHIP
+	if authRol == userModel.RolMedico {
+
+		medico, err := s.repoMedico.ObtenerMedicoPorID(
+			ctx,
+			agenda.MedicoID,
+		)
+		if err != nil {
+			return err
+		}
+
+		if medico.UserID != authUserID {
+			return pkg.ErrForbidden
+		}
+	}
+
 	if err := s.repo.DesactivarAgenda(ctx, id); err != nil {
 		return fmt.Errorf("error al desactivar agenda: %w", err)
 	}
@@ -178,7 +236,7 @@ func (s *agendaService) DesactivarAgenda(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (s *agendaService) ActivarAgenda(ctx context.Context, id int64) error {
+func (s *agendaService) ActivarAgenda(ctx context.Context, authUserID int64, authRol userModel.Rol, id int64) error {
 	if id <= 0 {
 		return pkg.ErrIDInvalido
 	}
@@ -190,6 +248,21 @@ func (s *agendaService) ActivarAgenda(ctx context.Context, id int64) error {
 
 	if agenda.Activo {
 		return nil
+	}
+	// OWNERSHIP
+	if authRol == userModel.RolMedico {
+
+		medico, err := s.repoMedico.ObtenerMedicoPorID(
+			ctx,
+			agenda.MedicoID,
+		)
+		if err != nil {
+			return err
+		}
+
+		if medico.UserID != authUserID {
+			return pkg.ErrForbidden
+		}
 	}
 
 	if err := s.repo.ActivarAgenda(ctx, id); err != nil {

@@ -7,6 +7,7 @@ import (
 	"turnos-medicos/internal/features/turnos/dto"
 	"turnos-medicos/internal/features/turnos/models"
 	"turnos-medicos/internal/features/turnos/repository"
+	userModel "turnos-medicos/internal/features/users/models"
 	"turnos-medicos/internal/pkg"
 
 	agendaRepository "turnos-medicos/internal/features/agenda/repository"
@@ -16,14 +17,14 @@ import (
 
 type TurnoService interface {
 	CrearTurno(ctx context.Context, req dto.CrearTurnoRequest) (*models.Turno, error)
-	ObtenerTurnoPorID(ctx context.Context, turnoID int64) (*models.Turno, error)
-	ListarTurnosPorMedico(ctx context.Context, medicoID int64) ([]*models.Turno, error)
+	ObtenerTurnoPorID(ctx context.Context, authUserID int64, authRol userModel.Rol, turnoID int64) (*models.Turno, error)
+	ListarTurnosPorMedico(ctx context.Context, authUserID int64, authRol userModel.Rol, medicoID int64) ([]*models.Turno, error)
 	ListarTurnosPorPaciente(ctx context.Context, pacienteID int64) ([]*models.Turno, error)
 	ListarTurnosDisponibles(ctx context.Context, medicoID int64) ([]*models.Turno, error)
 	ReservarTurno(ctx context.Context, turnoID int64, pacienteID int64) error
 	LiberarTurno(ctx context.Context, turnoID int64) error
-	MarcarTurnoAtendido(ctx context.Context, turnoID int64) error
-	MarcarTurnoNoAsistio(ctx context.Context, turnoID int64) error
+	MarcarTurnoAtendido(ctx context.Context, authUserID int64, authRol userModel.Rol, turnoID int64) error
+	MarcarTurnoNoAsistio(ctx context.Context, authUserID int64, authRol userModel.Rol, turnoID int64) error
 }
 
 type turnoService struct {
@@ -141,7 +142,7 @@ func (s *turnoService) CrearTurno(ctx context.Context, req dto.CrearTurnoRequest
 	return turno, nil
 }
 
-func (s *turnoService) ObtenerTurnoPorID(ctx context.Context, turnoID int64) (*models.Turno, error) {
+func (s *turnoService) ObtenerTurnoPorID(ctx context.Context, authUserID int64, authRol userModel.Rol, turnoID int64) (*models.Turno, error) {
 	if turnoID <= 0 {
 		return nil, pkg.ErrIDInvalido
 	}
@@ -151,11 +152,22 @@ func (s *turnoService) ObtenerTurnoPorID(ctx context.Context, turnoID int64) (*m
 		return nil, err
 	}
 
+	// OWNERSHIP
+	if authRol == userModel.RolMedico {
+		medico, err := s.repoMedico.ObtenerMedicoPorID(ctx, turno.MedicoID)
+		if err != nil {
+			return nil, err
+		}
+
+		if medico.UserID != authUserID {
+			return nil, pkg.ErrForbidden
+		}
+	}
 	return turno, nil
 
 }
 
-func (s *turnoService) ListarTurnosPorMedico(ctx context.Context, medicoID int64) ([]*models.Turno, error) {
+func (s *turnoService) ListarTurnosPorMedico(ctx context.Context, authUserID int64, authRol userModel.Rol, medicoID int64) ([]*models.Turno, error) {
 	if medicoID <= 0 {
 		return nil, pkg.ErrIDInvalido
 	}
@@ -167,6 +179,14 @@ func (s *turnoService) ListarTurnosPorMedico(ctx context.Context, medicoID int64
 
 	if !medico.Activo {
 		return nil, pkg.ErrMedicoInactivo
+	}
+
+	// OWNERSHIP
+	if authRol == userModel.RolMedico {
+
+		if medico.UserID != authUserID {
+			return nil, pkg.ErrForbidden
+		}
 	}
 
 	turnos, err := s.repoTurno.ListarTurnosPorMedico(ctx, medicoID)
@@ -311,7 +331,7 @@ func (s *turnoService) LiberarTurno(ctx context.Context, turnoID int64) error {
 
 }
 
-func (s *turnoService) MarcarTurnoAtendido(ctx context.Context, turnoID int64) error {
+func (s *turnoService) MarcarTurnoAtendido(ctx context.Context, authUserID int64, authRol userModel.Rol, turnoID int64) error {
 	if turnoID <= 0 {
 		return pkg.ErrIDInvalido
 	}
@@ -319,6 +339,19 @@ func (s *turnoService) MarcarTurnoAtendido(ctx context.Context, turnoID int64) e
 	turno, err := s.repoTurno.ObtenerTurnoPorID(ctx, turnoID)
 	if err != nil {
 		return err
+	}
+
+	// OWNERSHIP
+	if authRol == userModel.RolMedico {
+
+		medico, err := s.repoMedico.ObtenerMedicoPorID(ctx, turno.MedicoID)
+		if err != nil {
+			return err
+		}
+
+		if medico.UserID != authUserID {
+			return pkg.ErrForbidden
+		}
 	}
 
 	// Solo un turno reservado puede marcarse como atendido.
@@ -338,7 +371,7 @@ func (s *turnoService) MarcarTurnoAtendido(ctx context.Context, turnoID int64) e
 	return nil
 }
 
-func (s *turnoService) MarcarTurnoNoAsistio(ctx context.Context, turnoID int64) error {
+func (s *turnoService) MarcarTurnoNoAsistio(ctx context.Context, authUserID int64, authRol userModel.Rol, turnoID int64) error {
 	if turnoID <= 0 {
 		return pkg.ErrIDInvalido
 	}
@@ -346,6 +379,19 @@ func (s *turnoService) MarcarTurnoNoAsistio(ctx context.Context, turnoID int64) 
 	turno, err := s.repoTurno.ObtenerTurnoPorID(ctx, turnoID)
 	if err != nil {
 		return err
+	}
+
+	// OWNERSHIP
+	if authRol == userModel.RolMedico {
+
+		medico, err := s.repoMedico.ObtenerMedicoPorID(ctx, turno.MedicoID)
+		if err != nil {
+			return err
+		}
+
+		if medico.UserID != authUserID {
+			return pkg.ErrForbidden
+		}
 	}
 
 	// Solo un turno reservado puede marcarse como no asistió

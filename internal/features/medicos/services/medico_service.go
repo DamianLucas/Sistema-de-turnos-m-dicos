@@ -19,11 +19,11 @@ import (
 
 type MedicoService interface {
 	CrearMedico(ctx context.Context, req dto.CrearMedicoRequest) (*medicoModel.Medico, error)
-	ObtenerMedicoPorID(ctx context.Context, medicoID int64) (*medicoModel.Medico, error)
+	ObtenerMedicoPorID(ctx context.Context, authUserID int64, authRol userModel.Rol, medicoID int64) (*medicoModel.Medico, error)
 	ObtenerMedicoPorMatricula(ctx context.Context, matricula string) (*medicoModel.Medico, error)
 	ListarMedicosActivos(ctx context.Context) ([]*medicoModel.Medico, error)
 	ListarMedicosPorEspecialidad(ctx context.Context, especialidad string) ([]*medicoModel.Medico, error)
-	ActualizarMedico(ctx context.Context, medicoID int64, req dto.ActualizarMedicoRequest) (*medicoModel.Medico, error)
+	ActualizarMedico(ctx context.Context, authUserID int64, authRol userModel.Rol, medicoID int64, req dto.ActualizarMedicoRequest) (*medicoModel.Medico, error)
 	DesactivarMedico(ctx context.Context, medicoID int64) error
 	ActivarMedico(ctx context.Context, medicoID int64) error
 }
@@ -98,7 +98,7 @@ func (s *medicoService) CrearMedico(ctx context.Context, req dto.CrearMedicoRequ
 
 }
 
-func (s *medicoService) ObtenerMedicoPorID(ctx context.Context, medicoID int64) (*medicoModel.Medico, error) {
+func (s *medicoService) ObtenerMedicoPorID(ctx context.Context, authUserID int64, authRol userModel.Rol, medicoID int64) (*medicoModel.Medico, error) {
 	if medicoID <= 0 {
 		return nil, pkg.ErrIDInvalido
 	}
@@ -110,6 +110,13 @@ func (s *medicoService) ObtenerMedicoPorID(ctx context.Context, medicoID int64) 
 
 	if !medico.Activo {
 		return nil, pkg.ErrMedicoInactivo
+	}
+
+	if authRol == userModel.RolMedico {
+
+		if medico.UserID != authUserID {
+			return nil, pkg.ErrForbidden
+		}
 	}
 
 	return medico, err
@@ -152,7 +159,7 @@ func (s *medicoService) ListarMedicosPorEspecialidad(ctx context.Context, especi
 
 }
 
-func (s *medicoService) ActualizarMedico(ctx context.Context, medicoID int64, req dto.ActualizarMedicoRequest) (*medicoModel.Medico, error) {
+func (s *medicoService) ActualizarMedico(ctx context.Context, authUserID int64, authRol userModel.Rol, medicoID int64, req dto.ActualizarMedicoRequest) (*medicoModel.Medico, error) {
 	if medicoID <= 0 {
 		return nil, pkg.ErrIDInvalido
 	}
@@ -164,6 +171,14 @@ func (s *medicoService) ActualizarMedico(ctx context.Context, medicoID int64, re
 
 	if !medicoActual.Activo {
 		return nil, pkg.ErrMedicoInactivo
+	}
+
+	// OWNERSHIP
+	if authRol == userModel.RolMedico {
+
+		if medicoActual.UserID != authUserID {
+			return nil, pkg.ErrForbidden
+		}
 	}
 
 	//helper local

@@ -3,6 +3,7 @@ package handlers
 import (
 	"turnos-medicos/internal/features/turnos/dto"
 	"turnos-medicos/internal/features/turnos/services"
+	"turnos-medicos/internal/middleware"
 	"turnos-medicos/internal/pkg"
 
 	"github.com/gin-gonic/gin"
@@ -42,10 +43,15 @@ func (h *TurnoHandler) CrearTurno(c *gin.Context) {
 func (h *TurnoHandler) ObtenerTurnoPorID(c *gin.Context) {
 	turnoID, err := pkg.ParseInt64Param(c, "id")
 	if err != nil {
-		pkg.BadRequest(c, pkg.ErrIDInvalido.Error())
+		pkg.HandleError(c, err)
 		return
 	}
-	turno, err := h.service.ObtenerTurnoPorID(c.Request.Context(), turnoID)
+
+	//usuario autenticado
+	authUserID := middleware.GetUserID(c)
+	authRol := middleware.GetUserRol(c)
+
+	turno, err := h.service.ObtenerTurnoPorID(c.Request.Context(), authUserID, authRol, turnoID)
 	if err != nil {
 		pkg.HandleError(c, err)
 		return
@@ -57,23 +63,31 @@ func (h *TurnoHandler) ObtenerTurnoPorID(c *gin.Context) {
 func (h *TurnoHandler) ListarTurnosPorMedico(c *gin.Context) {
 	medicoID, err := pkg.ParseInt64Param(c, "medicoID")
 	if err != nil {
-		pkg.BadRequest(c, pkg.ErrIDInvalido.Error())
-		return
-	}
-
-	turnos, err := h.service.ListarTurnosPorMedico(c.Request.Context(), medicoID)
-	if err != nil {
 		pkg.HandleError(c, err)
 		return
 	}
 
+	//usuario autenticado
+	authUserID := middleware.GetUserID(c)
+	authRol := middleware.GetUserRol(c)
+
+	turnos, err := h.service.ListarTurnosPorMedico(
+		c.Request.Context(),
+		authUserID,
+		authRol,
+		medicoID,
+	)
+	if err != nil {
+		pkg.HandleError(c, err)
+		return
+	}
 	pkg.Success(c, turnos, "Turnos del medico obtenidos correctamente")
 }
 
 func (h *TurnoHandler) ListarTurnosPorPaciente(c *gin.Context) {
 	pacienteID, err := pkg.ParseInt64Param(c, "pacienteID")
 	if err != nil {
-		pkg.BadRequest(c, pkg.ErrIDInvalido.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 
@@ -89,7 +103,7 @@ func (h *TurnoHandler) ListarTurnosPorPaciente(c *gin.Context) {
 func (h *TurnoHandler) ListarTurnosDisponibles(c *gin.Context) {
 	medicoID, err := pkg.ParseInt64Param(c, "medicoID")
 	if err != nil {
-		pkg.BadRequest(c, pkg.ErrIDInvalido.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 
@@ -106,7 +120,7 @@ func (h *TurnoHandler) ListarTurnosDisponibles(c *gin.Context) {
 func (h *TurnoHandler) ReservarTurno(c *gin.Context) {
 	turnoID, err := pkg.ParseInt64Param(c, "id")
 	if err != nil {
-		pkg.BadRequest(c, pkg.ErrIDInvalido.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 
@@ -128,7 +142,7 @@ func (h *TurnoHandler) ReservarTurno(c *gin.Context) {
 func (h *TurnoHandler) LiberarTurno(c *gin.Context) {
 	turnoID, err := pkg.ParseInt64Param(c, "id")
 	if err != nil {
-		pkg.BadRequest(c, pkg.ErrIDInvalido.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 
@@ -145,11 +159,15 @@ func (h *TurnoHandler) LiberarTurno(c *gin.Context) {
 func (h *TurnoHandler) MarcarTurnoAtendido(c *gin.Context) {
 	turnoID, err := pkg.ParseInt64Param(c, "id")
 	if err != nil {
-		pkg.BadRequest(c, pkg.ErrIDInvalido.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 
-	err = h.service.MarcarTurnoAtendido(c.Request.Context(), turnoID)
+	//usuario autenticado
+	authUserID := middleware.GetUserID(c)
+	authRol := middleware.GetUserRol(c)
+
+	err = h.service.MarcarTurnoAtendido(c.Request.Context(), authUserID, authRol, turnoID)
 	if err != nil {
 		pkg.HandleError(c, err)
 		return
@@ -162,11 +180,15 @@ func (h *TurnoHandler) MarcarTurnoAtendido(c *gin.Context) {
 func (h *TurnoHandler) MarcarTurnoNoAsistio(c *gin.Context) {
 	turnoID, err := pkg.ParseInt64Param(c, "id")
 	if err != nil {
-		pkg.BadRequest(c, pkg.ErrIDInvalido.Error())
+		pkg.HandleError(c, err)
 		return
 	}
 
-	err = h.service.MarcarTurnoNoAsistio(c.Request.Context(), turnoID)
+	//usuario autenticado
+	authUserID := middleware.GetUserID(c)
+	authRol := middleware.GetUserRol(c)
+
+	err = h.service.MarcarTurnoNoAsistio(c.Request.Context(), authUserID, authRol, turnoID)
 	if err != nil {
 		pkg.HandleError(c, err)
 		return

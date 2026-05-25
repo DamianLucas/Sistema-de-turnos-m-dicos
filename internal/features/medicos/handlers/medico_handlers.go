@@ -6,6 +6,7 @@ import (
 	"turnos-medicos/internal/features/medicos/models"
 	"turnos-medicos/internal/features/medicos/services"
 	pacienteService "turnos-medicos/internal/features/pacientes/services"
+	"turnos-medicos/internal/middleware"
 
 	"turnos-medicos/internal/pkg"
 
@@ -60,12 +61,15 @@ func (h *MedicoHandler) ObtenerMedicoPorID(c *gin.Context) {
 	id, err := pkg.ParseInt64Param(c, "id")
 
 	if err != nil {
-		pkg.BadRequest(c, "ID invalido")
+		pkg.HandleError(c, err)
 		return
 	}
 
-	medico, err := h.service.ObtenerMedicoPorID(c.Request.Context(), id)
+	// usuario autenticado
+	authUserID := middleware.GetUserID(c)
+	authRol := middleware.GetUserRol(c)
 
+	medico, err := h.service.ObtenerMedicoPorID(c.Request.Context(), authUserID, authRol, id)
 	if err != nil {
 		if errors.Is(err, pkg.ErrMedicoNoEncontrado) {
 			pkg.NotFound(c, err.Error())
@@ -84,7 +88,7 @@ func (h *MedicoHandler) ObtenerMedicoPorID(c *gin.Context) {
 func (h *MedicoHandler) ObtenerMedicoPorMatricula(c *gin.Context) {
 	matricula := c.Param("matricula")
 	if matricula == "" {
-		pkg.BadRequest(c, "matricula es requerida")
+		pkg.HandleError(c, pkg.ErrMatriculaRequerida)
 		return
 	}
 
@@ -136,17 +140,20 @@ func (h *MedicoHandler) ListarMedicos(c *gin.Context) {
 func (h *MedicoHandler) ActualizarMedico(c *gin.Context) {
 	medicoID, err := pkg.ParseInt64Param(c, "id")
 	if err != nil {
-		pkg.BadRequest(c, "ID invalido")
+		pkg.HandleError(c, err)
 		return
 	}
 
 	var req dto.ActualizarMedicoRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		pkg.BadRequest(c, "Datos invalidos")
+		pkg.HandleError(c, err)
 		return
 	}
 
-	medico, err := h.service.ActualizarMedico(c.Request.Context(), medicoID, req)
+	authUserID := middleware.GetUserID(c)
+	authRol := middleware.GetUserRol(c)
+
+	medico, err := h.service.ActualizarMedico(c.Request.Context(), authUserID, authRol, medicoID, req)
 	if err != nil {
 		if errors.Is(err, pkg.ErrMedicoNoEncontrado) {
 			pkg.NotFound(c, pkg.ErrMedicoNoEncontrado.Error())
@@ -223,8 +230,12 @@ func (h *MedicoHandler) ListarPacientesPorMedico(c *gin.Context) {
 		return
 	}
 
+	//usuario autenticado
+	authUserID := middleware.GetUserID(c)
+	authRol := middleware.GetUserRol(c)
+
 	// Llamamos al servicio de pacientes porque lo que queremos obtener son pacientes
-	pacientes, err := h.pacienteService.ListarPacientesPorMedico(c.Request.Context(), medicoID)
+	pacientes, err := h.pacienteService.ListarPacientesPorMedico(c.Request.Context(), authUserID, authRol, medicoID)
 	if err != nil {
 		pkg.HandleError(c, err)
 		return
