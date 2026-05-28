@@ -166,6 +166,64 @@ func (r *PacientePostgresRepository) ObtenerPacientePorDNI(ctx context.Context, 
 	return &paciente, nil
 }
 
+func (r *PacientePostgresRepository) ObtenerPacientePorEmail(ctx context.Context, email string) (*models.Paciente, error) {
+
+	query := `
+		SELECT
+			id,
+			nombre,
+			apellido,
+			dni,
+			email,
+			telefono,
+			fecha_nacimiento,
+			direccion,
+			obra_social,
+			medico_tratante_id,
+			activo,
+			created_at,
+			updated_at
+		FROM pacientes
+		WHERE email = $1
+	`
+
+	paciente := &models.Paciente{}
+
+	err := r.db.QueryRowContext(
+		ctx,
+		query,
+		email,
+	).Scan(
+		&paciente.ID,
+		&paciente.Nombre,
+		&paciente.Apellido,
+		&paciente.DNI,
+		&paciente.Email,
+		&paciente.Telefono,
+		&paciente.FechaNacimiento,
+		&paciente.Direccion,
+		&paciente.ObraSocial,
+		&paciente.MedicoTratante,
+		&paciente.Activo,
+		&paciente.CreatedAt,
+		&paciente.UpdatedAt,
+	)
+
+	if err != nil {
+
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, pkg.ErrPacienteNoEncontrado
+		}
+
+		return nil, fmt.Errorf(
+			"error obteniendo paciente por email: %w",
+			err,
+		)
+	}
+
+	return paciente, nil
+}
+
 func (r *PacientePostgresRepository) ListarPacientesActivos(ctx context.Context) ([]*models.Paciente, error) {
 
 	query := `SELECT id, nombre, apellido, dni, email, telefono, fecha_nacimiento, direccion, obra_social, medico_tratante_id, activo, created_at, updated_at 

@@ -10,6 +10,7 @@ type MedicoRepository interface {
 	CrearMedico(ctx context.Context, u *modelsUser.User, m *modelsMedico.Medico) error
 
 	ObtenerMedicoPorID(ctx context.Context, medicoId int64) (*modelsMedico.Medico, error)
+	ObtenerMedicoPorUserID(ctx context.Context, userID int64) (*modelsMedico.Medico, error) //repo para relacion UserID -> medico.user_id + medico.id
 	ObtenerMedicoPorMatricula(ctx context.Context, matricula string) (*modelsMedico.Medico, error)
 
 	ListarMedicosActivos(ctx context.Context) ([]*modelsMedico.Medico, error)

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"turnos-medicos/internal/features/pacientes/dto"
 	"turnos-medicos/internal/features/pacientes/services"
+	"turnos-medicos/internal/middleware"
 	"turnos-medicos/internal/pkg"
 
 	"github.com/gin-gonic/gin"
@@ -47,23 +48,25 @@ func (h *PacienteHandler) CrearPaciente(c *gin.Context) {
 }
 
 func (h *PacienteHandler) ObtenerPacientePorID(c *gin.Context) {
+
 	id, err := pkg.ParseInt64Param(c, "id")
 	if err != nil {
-		pkg.BadRequest(c, "ID invalido")
+		pkg.HandleError(c, err)
 		return
 	}
 
-	paciente, err := h.service.ObtenerPacientePorID(c.Request.Context(), id)
+	// usuario autenticado
+	authUserID := middleware.GetUserID(c)
+	authRol := middleware.GetUserRol(c)
+
+	paciente, err := h.service.ObtenerPacientePorID(
+		c.Request.Context(),
+		authUserID,
+		authRol,
+		id,
+	)
 	if err != nil {
-		if errors.Is(err, pkg.ErrPacienteNoEncontrado) {
-			pkg.NotFound(c, err.Error())
-			return
-		}
-		if errors.Is(err, pkg.ErrPacienteInactivo) {
-			pkg.BadRequest(c, err.Error())
-			return
-		}
-		pkg.InternalError(c)
+		pkg.HandleError(c, err)
 		return
 	}
 
@@ -79,13 +82,9 @@ func (h *PacienteHandler) ObtenerPacientePorDNI(c *gin.Context) {
 	}
 
 	paciente, err := h.service.ObtenerPacientePorDNI(c.Request.Context(), dni)
-	if err != nil {
-		if errors.Is(err, pkg.ErrPacienteNoEncontrado) {
-			pkg.NotFound(c, err.Error())
-			return
-		}
 
-		pkg.InternalError(c)
+	if err != nil {
+		pkg.HandleError(c, err)
 		return
 	}
 
@@ -93,7 +92,11 @@ func (h *PacienteHandler) ObtenerPacientePorDNI(c *gin.Context) {
 }
 
 func (h *PacienteHandler) ListarPacientesActivos(c *gin.Context) {
-	pacientesActivos, err := h.service.ListarPacientesActivos(c.Request.Context())
+
+	authUserID := middleware.GetUserID(c)
+	authRol := middleware.GetUserRol(c)
+
+	pacientesActivos, err := h.service.ListarPacientesActivos(c.Request.Context(), authUserID, authRol)
 	if err != nil {
 		pkg.InternalError(c)
 		return
@@ -179,17 +182,13 @@ func (h *PacienteHandler) ActualizarPaciente(c *gin.Context) {
 		return
 	}
 
-	paciente, err := h.service.ActualizarPaciente(c.Request.Context(), pacienteID, req)
+	// usuario autenticado
+	authUserID := middleware.GetUserID(c)
+	authRol := middleware.GetUserRol(c)
+
+	paciente, err := h.service.ActualizarPaciente(c.Request.Context(), authUserID, authRol, pacienteID, req)
 	if err != nil {
-		if errors.Is(err, pkg.ErrPacienteNoEncontrado) {
-			pkg.NotFound(c, err.Error())
-			return
-		}
-		if errors.Is(err, pkg.ErrPacienteInactivo) {
-			pkg.BadRequest(c, err.Error())
-			return
-		}
-		pkg.InternalError(c)
+		pkg.HandleError(c, err)
 		return
 	}
 

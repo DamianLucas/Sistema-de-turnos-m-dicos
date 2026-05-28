@@ -9,6 +9,8 @@ type PacienteRepository interface {
 	CrearPaciente(ctx context.Context, p *models.Paciente) error
 	ObtenerPacientePorID(ctx context.Context, pacienteID int64) (*models.Paciente, error)
 	ObtenerPacientePorDNI(ctx context.Context, dni string) (*models.Paciente, error)
+	ObtenerPacientePorEmail(ctx context.Context, email string) (*models.Paciente, error) //importante para verificar email duplicado al actualizar
+
 	ListarPacientesActivos(ctx context.Context) ([]*models.Paciente, error)
 	DesactivarPaciente(ctx context.Context, pacienteID int64) error
 	ActivarPaciente(ctx context.Context, pacienteID int64) error

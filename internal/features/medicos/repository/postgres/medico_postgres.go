@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	medicoModel "turnos-medicos/internal/features/medicos/models"
 	userModel "turnos-medicos/internal/features/users/models"
@@ -124,6 +125,41 @@ func (r *MedicoPostgresRepository) ObtenerMedicoPorID(ctx context.Context, medic
 
 	return &medico, nil
 
+}
+
+func (r *MedicoPostgresRepository) ObtenerMedicoPorUserID(ctx context.Context, userID int64) (*medicoModel.Medico, error) {
+	query := `
+		SELECT 
+			id,
+			user_id,
+			matricula,
+			especialidad
+		FROM medicos
+		WHERE user_id = $1
+	`
+
+	medico := &medicoModel.Medico{}
+
+	err := r.db.QueryRowContext(ctx, query, userID).Scan(
+		&medico.ID,
+		&medico.UserID,
+		&medico.Matricula,
+		&medico.Especialidad,
+	)
+
+	if err != nil {
+
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, pkg.ErrMedicoNoEncontrado
+		}
+
+		return nil, fmt.Errorf(
+			"error obteniendo medico por userID: %w",
+			err,
+		)
+	}
+
+	return medico, nil
 }
 
 func (r *MedicoPostgresRepository) ObtenerMedicoPorMatricula(ctx context.Context, matricula string) (*medicoModel.Medico, error) {

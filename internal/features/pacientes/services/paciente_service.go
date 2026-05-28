@@ -16,12 +16,12 @@ import (
 
 type PacienteService interface {
 	CrearPaciente(ctx context.Context, req dto.CrearPacienteRequest) (*models.Paciente, error)
-	ObtenerPacientePorID(ctx context.Context, pacienteID int64) (*models.Paciente, error)
+	ObtenerPacientePorID(ctx context.Context, authUserID int64, authRol userModel.Rol, pacienteID int64) (*models.Paciente, error)
 	ObtenerPacientePorDNI(ctx context.Context, dni string) (*models.Paciente, error)
-	ListarPacientesActivos(ctx context.Context) ([]*models.Paciente, error)
+	ListarPacientesActivos(ctx context.Context, authUserID int64, authRol userModel.Rol) ([]*models.Paciente, error)
 	DesactivarPaciente(ctx context.Context, pacienteID int64) error
 	ActivarPaciente(ctx context.Context, pacienteID int64) error
-	ActualizarPaciente(ctx context.Context, pacienteID int64, req dto.ActualizarPacienteRequest) (*models.Paciente, error)
+	ActualizarPaciente(ctx context.Context, authUserID int64, authRol userModel.Rol, pacienteID int64, req dto.ActualizarPacienteRequest) (*models.Paciente, error)
 	AsignarMedicoTratante(ctx context.Context, pacienteID, medicoID int64) error
 	QuitarMedicoTratante(ctx context.Context, pacienteID int64) error
 	ListarPacientesPorMedico(ctx context.Context, authUserID int64, authRol userModel.Rol, medicoID int64) ([]*models.Paciente, error)
@@ -70,18 +70,43 @@ func (s *pacienteService) CrearPaciente(ctx context.Context, req dto.CrearPacien
 	return paciente, nil
 }
 
-func (s *pacienteService) ObtenerPacientePorID(ctx context.Context, pacienteID int64) (*models.Paciente, error) {
+func (s *pacienteService) ObtenerPacientePorID(ctx context.Context, authUserID int64, authRol userModel.Rol, pacienteID int64) (*models.Paciente, error) {
+
 	if pacienteID <= 0 {
 		return nil, pkg.ErrIDInvalido
 	}
 
-	paciente, err := s.repoPaciente.ObtenerPacientePorID(ctx, pacienteID)
+	paciente, err := s.repoPaciente.ObtenerPacientePorID(
+		ctx,
+		pacienteID,
+	)
 	if err != nil {
 		return nil, err
 	}
 
 	if !paciente.Activo {
 		return nil, pkg.ErrPacienteInactivo
+	}
+
+	// OWNERSHIP
+	if authRol == userModel.RolMedico {
+
+		// paciente sin medico asignado
+		if paciente.MedicoTratante == nil {
+			return nil, pkg.ErrForbidden
+		}
+
+		medico, err := s.repoMedico.ObtenerMedicoPorID(
+			ctx,
+			*paciente.MedicoTratante,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		if medico.UserID != authUserID {
+			return nil, pkg.ErrForbidden
+		}
 	}
 
 	return paciente, nil
@@ -104,11 +129,46 @@ func (s *pacienteService) ObtenerPacientePorDNI(ctx context.Context, dni string)
 	return paciente, nil
 }
 
-func (s *pacienteService) ListarPacientesActivos(ctx context.Context) ([]*models.Paciente, error) {
+func (s *pacienteService) ListarPacientesActivos(ctx context.Context, authUserID int64, authRol userModel.Rol) ([]*models.Paciente, error) {
+
+	if authRol == userModel.RolMedico {
+
+		medico, err := s.repoMedico.ObtenerMedicoPorUserID(
+			ctx,
+			authUserID,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		pacientes, err := s.repoPaciente.ListarPacientesPorMedico(
+			ctx,
+			medico.ID,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		if pacientes == nil {
+			return []*models.Paciente{}, nil
+		}
+
+		return pacientes, nil
+	}
+
+	// ADMIN / ADMINISTRATIVO
 	pacientes, err := s.repoPaciente.ListarPacientesActivos(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("error al listar pacientes activos: %w", err)
+		return nil, fmt.Errorf(
+			"error al listar pacientes activos: %w",
+			err,
+		)
 	}
+
+	if pacientes == nil {
+		return []*models.Paciente{}, nil
+	}
+
 	return pacientes, nil
 }
 
@@ -154,7 +214,7 @@ func (s *pacienteService) ActivarPaciente(ctx context.Context, pacienteID int64)
 
 }
 
-func (s *pacienteService) ActualizarPaciente(ctx context.Context, pacienteID int64, req dto.ActualizarPacienteRequest) (*models.Paciente, error) {
+func (s *pacienteService) ActualizarPaciente(ctx context.Context, authUserID int64, authRol userModel.Rol, pacienteID int64, req dto.ActualizarPacienteRequest) (*models.Paciente, error) {
 	if pacienteID <= 0 {
 		return nil, pkg.ErrIDInvalido
 	}
@@ -165,6 +225,25 @@ func (s *pacienteService) ActualizarPaciente(ctx context.Context, pacienteID int
 	}
 	if !paciente.Activo {
 		return nil, pkg.ErrPacienteInactivo
+	}
+
+	if authRol == userModel.RolMedico {
+
+		if paciente.MedicoTratante == nil {
+			return nil, pkg.ErrForbidden
+		}
+
+		medico, err := s.repoMedico.ObtenerMedicoPorID(
+			ctx,
+			*paciente.MedicoTratante,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		if medico.UserID != authUserID {
+			return nil, pkg.ErrForbidden
+		}
 	}
 
 	// Helper local para limpiar la vista
