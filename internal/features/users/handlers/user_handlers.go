@@ -17,8 +17,6 @@ func NewUserHandler(s services.UserService) *UserHandler {
 	return &UserHandler{service: s}
 }
 
-//handlers del service
-
 func (h *UserHandler) CrearUsuario(c *gin.Context) {
 
 	var req dto.CrearUsuarioRequest
@@ -43,7 +41,6 @@ func (h *UserHandler) CrearUsuario(c *gin.Context) {
 
 }
 
-// ObtenerUsuarioPorID
 func (h *UserHandler) ObtenerUsuarioPorID(c *gin.Context) {
 	id, err := pkg.ParseInt64Param(c, "id")
 	if err != nil {
@@ -64,7 +61,6 @@ func (h *UserHandler) ObtenerUsuarioPorID(c *gin.Context) {
 
 }
 
-// ListarUsuariosActivos
 func (h *UserHandler) ListarUsuariosActivos(c *gin.Context) {
 	ctx := c.Request.Context()
 
@@ -77,7 +73,6 @@ func (h *UserHandler) ListarUsuariosActivos(c *gin.Context) {
 	pkg.Success(c, usersActive, "usuarios activos listados correctamente")
 }
 
-// ActualizarUsuarios
 func (h *UserHandler) ActualizarUsuario(c *gin.Context) {
 	userID, err := pkg.ParseInt64Param(c, "id")
 	if err != nil {
@@ -104,7 +99,6 @@ func (h *UserHandler) ActualizarUsuario(c *gin.Context) {
 	pkg.Success(c, user, "usuario actualizado correctamente")
 }
 
-// DesactivarUsuario
 func (h *UserHandler) DesactivarUsuario(c *gin.Context) {
 	userID, err := pkg.ParseInt64Param(c, "id")
 	if err != nil {

@@ -20,7 +20,7 @@ type TurnoService interface {
 	ObtenerTurnoPorID(ctx context.Context, authUserID int64, authRol userModel.Rol, turnoID int64) (*models.Turno, error)
 	ListarTurnosPorMedico(ctx context.Context, authUserID int64, authRol userModel.Rol, medicoID int64) ([]*models.Turno, error)
 	ListarTurnosPorPaciente(ctx context.Context, pacienteID int64) ([]*models.Turno, error)
-	ListarTurnosDisponibles(ctx context.Context, medicoID int64) ([]*models.Turno, error)
+	ListarTurnosDisponibles(ctx context.Context, medicoID int64) ([]dto.TurnoDisponibleResponse, error)
 	ReservarTurno(ctx context.Context, turnoID int64, pacienteID int64) error
 	LiberarTurno(ctx context.Context, turnoID int64) error
 	MarcarTurnoAtendido(ctx context.Context, authUserID int64, authRol userModel.Rol, turnoID int64) error
@@ -225,7 +225,7 @@ func (s *turnoService) ListarTurnosPorPaciente(ctx context.Context, pacienteID i
 
 }
 
-func (s *turnoService) ListarTurnosDisponibles(ctx context.Context, medicoID int64) ([]*models.Turno, error) {
+func (s *turnoService) ListarTurnosDisponibles(ctx context.Context, medicoID int64) ([]dto.TurnoDisponibleResponse, error) {
 	if medicoID <= 0 {
 		return nil, pkg.ErrIDInvalido
 	}
@@ -244,11 +244,21 @@ func (s *turnoService) ListarTurnosDisponibles(ctx context.Context, medicoID int
 		return nil, err
 	}
 
-	if turnos == nil {
-		return []*models.Turno{}, nil
+	responses := make([]dto.TurnoDisponibleResponse, 0, len(turnos))
+
+	for _, turno := range turnos {
+
+		response := dto.TurnoDisponibleResponse{
+			ID:         turno.ID,
+			Fecha:      turno.Fecha,
+			HoraInicio: turno.HoraInicio.Format("15:04"),
+			MedicoID:   turno.MedicoID,
+		}
+
+		responses = append(responses, response)
 	}
 
-	return turnos, nil
+	return responses, nil
 
 }
 

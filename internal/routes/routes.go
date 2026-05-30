@@ -47,20 +47,24 @@ func SetupRoutes(r *gin.Engine, h *bootstrap.Handlers) {
 	// =========================
 
 	medicos := private.Group("/medicos")
-	medicos.Use(middleware.RequireRol(models.RolAdmin, models.RolAdministrativo))
+
+	medicosAdmin := medicos.Group("/")
+	medicosAdmin.Use(middleware.RequireRol(models.RolAdmin, models.RolAdministrativo))
 	{
-		medicos.POST("/", h.Medico.CrearMedico)
-
+		medicosAdmin.POST("/", h.Medico.CrearMedico)
 		// handler unificado que se usa para obtener medicos por especialidad y medicos activos con los queryParams
-		medicos.GET("/", h.Medico.ListarMedicos)
-
-		medicos.GET("/matricula/:matricula", h.Medico.ObtenerMedicoPorMatricula)
-		medicos.GET("/:id", h.Medico.ObtenerMedicoPorID)
-		medicos.GET("/:id/pacientes", h.Medico.ListarPacientesPorMedico) //<------ aqui
-
-		medicos.PUT("/:id", h.Medico.ActualizarMedico)
-		medicos.PATCH("/:id/desactivar", h.Medico.DesactivarMedico)
-		medicos.PATCH("/:id/activar", h.Medico.ActivarMedico)
+		medicosAdmin.GET("/", h.Medico.ListarMedicos)
+		medicosAdmin.GET("/matricula/:matricula", h.Medico.ObtenerMedicoPorMatricula)
+		medicosAdmin.GET("/:id", h.Medico.ObtenerMedicoPorID)
+		medicosAdmin.PUT("/:id", h.Medico.ActualizarMedico)
+		medicosAdmin.PATCH("/:id/desactivar", h.Medico.DesactivarMedico)
+		medicosAdmin.PATCH("/:id/activar", h.Medico.ActivarMedico)
+	}
+	//ownership
+	medicosOwner := medicos.Group("/")
+	medicosOwner.Use(middleware.RequireRol(models.RolAdmin, models.RolAdministrativo, models.RolMedico))
+	{
+		medicosOwner.GET("/:id/pacientes", h.Medico.ListarPacientesPorMedico)
 	}
 
 	// =========================
@@ -68,30 +72,24 @@ func SetupRoutes(r *gin.Engine, h *bootstrap.Handlers) {
 	// =========================
 
 	pacientes := private.Group("/pacientes")
-	//escritura
-	pacienteWrite := pacientes.Group("/")
-	pacienteWrite.Use(middleware.RequireRol(models.RolAdmin, models.RolAdministrativo, models.RolMedico))
-	{
-		pacienteWrite.POST("/", h.Paciente.CrearPaciente)
-		pacienteWrite.PUT("/:id", h.Paciente.ActualizarPaciente)
-		pacienteWrite.PATCH("/:id/asignar-medico/:medicoID", h.Paciente.AsignarMedicoTratante)
-		pacienteWrite.DELETE("/:id/medico", h.Paciente.QuitarMedicoTratante)
-	}
-
-	//lectura
-	pacienteRead := pacientes.Group("/")
-	pacienteRead.Use(middleware.RequireRol(models.RolAdmin, models.RolAdministrativo, models.RolMedico))
-	{
-		pacienteRead.GET("/", h.Paciente.ListarPacientesActivos)
-		pacienteRead.GET("/:id", h.Paciente.ObtenerPacientePorID)
-	}
 
 	pacienteAdmin := pacientes.Group("/")
 	pacienteAdmin.Use(middleware.RequireRol(models.RolAdmin, models.RolAdministrativo))
 	{
+		pacienteAdmin.POST("/", h.Paciente.CrearPaciente)
+		pacienteAdmin.PATCH("/:id/asignar-medico/:medicoID", h.Paciente.AsignarMedicoTratante)
+		pacienteAdmin.DELETE("/:id/medico", h.Paciente.QuitarMedicoTratante)
 		pacienteAdmin.GET("/dni/:dni", h.Paciente.ObtenerPacientePorDNI)
 		pacienteAdmin.PATCH("/:id/desactivar", h.Paciente.DesactivarPaciente)
 		pacienteAdmin.PATCH("/:id/activar", h.Paciente.ActivarPaciente)
+	}
+	//ownership
+	pacienteOwner := pacientes.Group("/")
+	pacienteOwner.Use(middleware.RequireRol(models.RolAdmin, models.RolAdministrativo, models.RolMedico))
+	{
+		pacienteOwner.GET("/", h.Paciente.ListarPacientesActivos)
+		pacienteOwner.GET("/:id", h.Paciente.ObtenerPacientePorID)
+		pacienteOwner.PUT("/:id", h.Paciente.ActualizarPaciente)
 	}
 
 	// =========================
@@ -117,17 +115,19 @@ func SetupRoutes(r *gin.Engine, h *bootstrap.Handlers) {
 	// =========================
 
 	turnos := private.Group("/turnos")
-	turnos.Use(middleware.RequireRol(models.RolAdmin, models.RolAdministrativo))
+
+	turnosAdmin := turnos.Group("/")
+	turnosAdmin.Use(middleware.RequireRol(models.RolAdmin, models.RolAdministrativo))
 	{
-		turnos.POST("/agenda/:id/crear", h.Turno.CrearTurno)
-		turnos.GET("/paciente/:pacienteID", h.Turno.ListarTurnosPorPaciente)
-		turnos.GET("/disponibles/:medicoID", h.Turno.ListarTurnosDisponibles)
-		turnos.PUT("/:id/reservar", h.Turno.ReservarTurno)
-		turnos.PUT("/:id/liberar", h.Turno.LiberarTurno)
-		turnos.PUT("/:id/atendido", h.Turno.MarcarTurnoAtendido)
-		turnos.PUT("/:id/no-asistio", h.Turno.MarcarTurnoNoAsistio)
+		turnosAdmin.POST("/agenda/:id/crear", h.Turno.CrearTurno)
+		turnosAdmin.GET("/paciente/:pacienteID", h.Turno.ListarTurnosPorPaciente)
+		turnosAdmin.GET("/disponibles/:medicoID", h.Turno.ListarTurnosDisponibles)
+		turnosAdmin.PUT("/:id/reservar", h.Turno.ReservarTurno)
+		turnosAdmin.PUT("/:id/liberar", h.Turno.LiberarTurno)
+		turnosAdmin.PUT("/:id/atendido", h.Turno.MarcarTurnoAtendido)
+		turnosAdmin.PUT("/:id/no-asistio", h.Turno.MarcarTurnoNoAsistio)
 	}
-	//owner
+	//Ownership
 	turnosRead := turnos.Group("/")
 	turnosRead.Use(middleware.RequireRol(models.RolAdmin, models.RolAdministrativo, models.RolMedico))
 	{
