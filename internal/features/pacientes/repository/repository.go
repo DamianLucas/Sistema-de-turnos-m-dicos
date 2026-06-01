@@ -18,6 +18,6 @@ type PacienteRepository interface {
 
 	AsignarMedicoTratante(ctx context.Context, pacienteID, medicoID int64) error
 	QuitarMedicoTratante(ctx context.Context, pacienteID int64) error
-	RemoverMedicoDePacientes(ctx context.Context, medicoID int64) error
+	// RemoverMedicoDePacientes(ctx context.Context, medicoID int64) error
 	ListarPacientesPorMedico(ctx context.Context, medicoID int64) ([]*models.Paciente, error)
 }

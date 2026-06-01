@@ -209,9 +209,11 @@ func (s *medicoService) ActualizarMedico(ctx context.Context, authUserID int64, 
 	return medicoActual, nil
 }
 
+// este metodo rompe la arquitectura debido a cambio de enfoque en el desarrollo
+// lo dejere por las dudas , sino tocara refactorizar
 func (s *medicoService) DesactivarMedico(ctx context.Context, medicoID int64) error {
 
-	if medicoID <= 1 {
+	if medicoID <= 0 {
 		return pkg.ErrIDInvalido
 	}
 

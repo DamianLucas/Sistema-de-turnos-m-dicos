@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"turnos-medicos/internal/features/turnos/dto"
@@ -50,6 +51,8 @@ func NewTurnoService(
 
 func (s *turnoService) CrearTurno(ctx context.Context, req dto.CrearTurnoRequest) (*models.Turno, error) {
 
+	loc := pkg.ArgentinaLocation()
+
 	if req.AgendaID <= 0 {
 		return nil, pkg.ErrIDInvalido
 	}
@@ -93,23 +96,45 @@ func (s *turnoService) CrearTurno(ctx context.Context, req dto.CrearTurnoRequest
 
 	// CONSTRUIR DATETIME REAL
 	slotInicio := time.Date(
-		fecha.Year(), fecha.Month(), fecha.Day(),
-		horaInicio.Hour(), horaInicio.Minute(),
-		0, 0, time.UTC,
+		fecha.Year(),
+		fecha.Month(),
+		fecha.Day(),
+		horaInicio.Hour(),
+		horaInicio.Minute(),
+		0,
+		0,
+		loc,
 	)
 
 	agendaInicio := time.Date(
-		fecha.Year(), fecha.Month(), fecha.Day(),
-		agenda.HoraInicio.Hour(), agenda.HoraInicio.Minute(),
-		0, 0, time.UTC,
+		fecha.Year(),
+		fecha.Month(),
+		fecha.Day(),
+		agenda.HoraInicio.Hour(),
+		agenda.HoraInicio.Minute(),
+		0,
+		0,
+		loc,
 	)
 
 	agendaFin := time.Date(
-		fecha.Year(), fecha.Month(), fecha.Day(),
-		agenda.HoraFin.Hour(), agenda.HoraFin.Minute(),
-		0, 0, time.UTC,
+		fecha.Year(),
+		fecha.Month(),
+		fecha.Day(),
+		agenda.HoraFin.Hour(),
+		agenda.HoraFin.Minute(),
+		0,
+		0,
+		loc,
 	)
 
+	ahora := time.Now().In(loc)
+	fmt.Println("slotInicio:", slotInicio)
+	fmt.Println("agendaInicio:", agendaInicio)
+	fmt.Println("agendaFin:", agendaFin)
+
+	fmt.Println("slotInicio.Before(agendaInicio):", slotInicio.Before(agendaInicio))
+	fmt.Println("slotInicio.Before(agendaFin):", slotInicio.Before(agendaFin))
 	if slotInicio.Before(agendaInicio) || !slotInicio.Before(agendaFin) {
 		return nil, pkg.ErrHorarioFueraAgenda
 	}
@@ -121,7 +146,7 @@ func (s *turnoService) CrearTurno(ctx context.Context, req dto.CrearTurnoRequest
 		return nil, pkg.ErrHorarioFueraAgenda
 	}
 
-	if slotInicio.Before(time.Now()) {
+	if slotInicio.Before(ahora) {
 		return nil, pkg.ErrTurnoExpirado
 	}
 
@@ -138,6 +163,12 @@ func (s *turnoService) CrearTurno(ctx context.Context, req dto.CrearTurnoRequest
 	if err := s.repoTurno.CrearTurno(ctx, turno); err != nil {
 		return nil, err
 	}
+
+	fmt.Println("slotInicio:", slotInicio)
+	fmt.Println("slotInicio location:", slotInicio.Location())
+
+	fmt.Println("now:", time.Now())
+	fmt.Println("now location:", time.Now().Location())
 
 	return turno, nil
 }

@@ -189,6 +189,8 @@ func (r *PacientePostgresRepository) ObtenerPacientePorEmail(ctx context.Context
 
 	paciente := &models.Paciente{}
 
+	var medicoID sql.NullInt64
+
 	err := r.db.QueryRowContext(
 		ctx,
 		query,
@@ -203,7 +205,7 @@ func (r *PacientePostgresRepository) ObtenerPacientePorEmail(ctx context.Context
 		&paciente.FechaNacimiento,
 		&paciente.Direccion,
 		&paciente.ObraSocial,
-		&paciente.MedicoTratante,
+		&medicoID,
 		&paciente.Activo,
 		&paciente.CreatedAt,
 		&paciente.UpdatedAt,
@@ -219,6 +221,10 @@ func (r *PacientePostgresRepository) ObtenerPacientePorEmail(ctx context.Context
 			"error obteniendo paciente por email: %w",
 			err,
 		)
+	}
+
+	if medicoID.Valid {
+		paciente.MedicoTratante = &medicoID.Int64
 	}
 
 	return paciente, nil
@@ -517,19 +523,19 @@ func (r *PacientePostgresRepository) ListarPacientesPorMedico(ctx context.Contex
 
 // este metodo rompe un poco el diseño ya que es un metodo que se usa en otro metodo (DesactivarMedico),
 // pero la interface lo reclama asi que por el momento quedara.
-func (r *PacientePostgresRepository) RemoverMedicoDePacientes(ctx context.Context, medicoID int64) error {
+// func (r *PacientePostgresRepository) RemoverMedicoDePacientes(ctx context.Context, medicoID int64) error {
 
-	query := `
-		UPDATE pacientes 
-		SET medico_tratante_id = NULL,
-		    updated_at = NOW()
-		WHERE medico_tratante_id = $1;
-	`
+// 	query := `
+// 		UPDATE pacientes
+// 		SET medico_tratante_id = NULL,
+// 		    updated_at = NOW()
+// 		WHERE medico_tratante_id = $1;
+// 	`
 
-	_, err := r.db.ExecContext(ctx, query, medicoID)
-	if err != nil {
-		return fmt.Errorf("repo remover medico de pacientes: %w", err)
-	}
+// 	_, err := r.db.ExecContext(ctx, query, medicoID)
+// 	if err != nil {
+// 		return fmt.Errorf("repo remover medico de pacientes: %w", err)
+// 	}
 
-	return nil
-}
+// 	return nil
+// }

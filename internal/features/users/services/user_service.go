@@ -103,25 +103,28 @@ func (s *userService) ActualizarUsuario(ctx context.Context, id int64, req dto.A
 		return nil, pkg.ErrUsuarioInactivo
 	}
 
-	//helper local
+	// helper local
 	actualizarSiValido := func(destino *string, valor string) {
 		if val := strings.TrimSpace(valor); val != "" {
 			*destino = val
 		}
 	}
-	// solo actualizar campos que vienen en el request
+
+	// actualizar solo campos simples
 	actualizarSiValido(&userActual.Nombre, req.Nombre)
 	actualizarSiValido(&userActual.Apellido, req.Apellido)
 	actualizarSiValido(&userActual.Email, req.Email)
-	actualizarSiValido(&userActual.Password, req.Password)
 
+	// password requiere validaciones
 	if req.Password != "" {
 		hashedPassword, err := pkg.HashPassword(req.Password)
 		if err != nil {
 			return nil, err
 		}
+
 		userActual.Password = hashedPassword
 	}
+
 	if req.Rol != "" {
 		userActual.Rol = req.Rol
 	}

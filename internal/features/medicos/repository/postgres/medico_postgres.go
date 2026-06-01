@@ -358,6 +358,8 @@ func (r *MedicoPostgresRepository) ActualizarMedico(ctx context.Context, m *medi
 
 }
 
+// ESTE MÉTODO YA NO SE USA
+// LO DEJO POR SI ACASO
 func (r *MedicoPostgresRepository) DesactivarMedico(ctx context.Context, medicoID int64) error {
 	query := `UPDATE users SET activo = false, updated_at = NOW() 
 			WHERE id = (SELECT user_id FROM medicos WHERE id = $1)`

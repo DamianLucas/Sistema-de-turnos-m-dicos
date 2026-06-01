@@ -10,12 +10,14 @@ type CrearTurnoRequest struct {
 
 // response para desacoplar
 type TurnoDisponibleResponse struct {
-	ID           int64     `json:"id"`
-	Fecha        time.Time `json:"fecha"`
-	HoraInicio   string    `json:"hora_inicio"`
-	MedicoID     int64     `json:"medico_id"`
-	MedicoNombre string    `json:"medico_nombre"`
-	Especialidad string    `json:"especialidad"`
+	ID         int64     `json:"id"`
+	Fecha      time.Time `json:"fecha"`
+	HoraInicio string    `json:"hora_inicio"`
+	MedicoID   int64     `json:"medico_id"`
+
+	//por el momento no los necesito, pero quedaran aca por las dudas
+	// MedicoNombre string    `json:"medico_nombre"`
+	// Especialidad string    `json:"especialidad"`
 }
 
 // para handler

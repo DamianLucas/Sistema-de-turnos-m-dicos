@@ -9,11 +9,10 @@ import (
 
 func main() {
 
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("❌ Error al cargar archivo .env")
+	_ = godotenv.Load()
+	if err := godotenv.Load(); err != nil {
+		log.Println(".env no encontrado, usando variables de entorno del sistema")
 	}
-
 	server.Start()
 
 }
