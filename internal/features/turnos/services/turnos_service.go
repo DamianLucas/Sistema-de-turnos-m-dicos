@@ -17,7 +17,7 @@ import (
 )
 
 type TurnoService interface {
-	CrearTurno(ctx context.Context, req dto.CrearTurnoRequest) (*models.Turno, error)
+	CrearTurno(ctx context.Context, agendaID int64, req dto.CrearTurnoRequest) (*models.Turno, error)
 	ObtenerTurnoPorID(ctx context.Context, authUserID int64, authRol userModel.Rol, turnoID int64) (*models.Turno, error)
 	ListarTurnosPorMedico(ctx context.Context, authUserID int64, authRol userModel.Rol, medicoID int64) ([]*models.Turno, error)
 	ListarTurnosPorPaciente(ctx context.Context, pacienteID int64) ([]*models.Turno, error)
@@ -49,24 +49,27 @@ func NewTurnoService(
 	}
 }
 
-func (s *turnoService) CrearTurno(ctx context.Context, req dto.CrearTurnoRequest) (*models.Turno, error) {
+func (s *turnoService) CrearTurno(ctx context.Context, agendaID int64, req dto.CrearTurnoRequest) (*models.Turno, error) {
 
 	loc := pkg.ArgentinaLocation()
 
-	if req.AgendaID <= 0 {
+	if agendaID <= 0 {
 		return nil, pkg.ErrIDInvalido
 	}
 
-	// AGENDA
-	agenda, err := s.repoAgenda.ObtenerAgendaPorID(ctx, req.AgendaID)
+	agenda, err := s.repoAgenda.ObtenerAgendaPorID(ctx, agendaID)
+
 	if err != nil {
 		return nil, err
+	}
+
+	if agenda == nil {
+		return nil, pkg.ErrAgendaNoEncontrada
 	}
 
 	if !agenda.Activo {
 		return nil, pkg.ErrAgendaInactiva
 	}
-
 	// MEDICO
 	medico, err := s.repoMedico.ObtenerMedicoPorID(ctx, agenda.MedicoID)
 	if err != nil {

@@ -26,6 +26,21 @@ func NewMedicoHandler(s services.MedicoService, ps pacienteService.PacienteServi
 	}
 }
 
+// CrearMedico godoc
+//
+// @Summary Crear médico
+// @Description Crea un nuevo médico en el sistema
+// @Tags Medicos
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param request body dto.CrearMedicoRequest true "Datos del médico"
+// @Success 201 {object} map[string]interface{} "Médico creado correctamente"
+// @Failure 400 {object} map[string]interface{} "Datos inválidos, email o matrícula duplicada"
+// @Failure 401 {object} map[string]interface{} "No autenticado"
+// @Failure 403 {object} map[string]interface{} "Sin permisos"
+// @Failure 500 {object} map[string]interface{} "Error interno"
+// @Router /medicos [post]
 func (h *MedicoHandler) CrearMedico(c *gin.Context) {
 
 	var req dto.CrearMedicoRequest
@@ -57,6 +72,21 @@ func (h *MedicoHandler) CrearMedico(c *gin.Context) {
 	pkg.Created(c, medico, "Medico creado correctamente")
 }
 
+// ObtenerMedicoPorID godoc
+//
+// @Summary Obtener médico por ID
+// @Description Obtiene un médico por su ID
+// @Tags Medicos
+// @Security BearerAuth
+// @Produce json
+// @Param id path int true "ID del médico"
+// @Success 200 {object} models.Medico
+// @Failure 400 {object} map[string]interface{} "ID inválido"
+// @Failure 401 {object} map[string]interface{} "No autenticado"
+// @Failure 403 {object} map[string]interface{} "Sin permisos"
+// @Failure 404 {object} map[string]interface{} "Médico no encontrado"
+// @Failure 500 {object} map[string]interface{} "Error interno"
+// @Router /medicos/{id} [get]
 func (h *MedicoHandler) ObtenerMedicoPorID(c *gin.Context) {
 	id, err := pkg.ParseInt64Param(c, "id")
 
@@ -105,6 +135,19 @@ func (h *MedicoHandler) ObtenerMedicoPorMatricula(c *gin.Context) {
 	pkg.Success(c, medico, "Medico obtenido por matricula correctamente")
 }
 
+// ListarMedicos godoc
+//
+// @Summary Listar médicos
+// @Description Lista todos los médicos activos o filtra por especialidad
+// @Tags Medicos
+// @Security BearerAuth
+// @Produce json
+// @Param especialidad query string false "Filtrar por especialidad"
+// @Success 200 {array} models.Medico
+// @Failure 401 {object} map[string]interface{} "No autenticado"
+// @Failure 403 {object} map[string]interface{} "Sin permisos"
+// @Failure 500 {object} map[string]interface{} "Error interno"
+// @Router /medicos [get]
 func (h *MedicoHandler) ListarMedicos(c *gin.Context) {
 
 	especialidad := c.Query("especialidad")

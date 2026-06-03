@@ -1,0 +1,1009 @@
+basePath: /api/v1
+definitions:
+  dto.CrearAgendaRequest:
+    properties:
+      dia_semana:
+        maximum: 7
+        minimum: 1
+        type: integer
+      duracion_turno:
+        maximum: 120
+        minimum: 5
+        type: integer
+      hora_fin:
+        type: string
+      hora_inicio:
+        type: string
+    required:
+    - dia_semana
+    - duracion_turno
+    - hora_fin
+    - hora_inicio
+    type: object
+  dto.CrearMedicoRequest:
+    properties:
+      apellido:
+        type: string
+      email:
+        type: string
+      especialidad:
+        type: string
+      matricula:
+        type: string
+      nombre:
+        type: string
+      password:
+        minLength: 8
+        type: string
+    required:
+    - apellido
+    - email
+    - especialidad
+    - matricula
+    - nombre
+    - password
+    type: object
+  dto.CrearPacienteRequest:
+    properties:
+      apellido:
+        type: string
+      direccion:
+        type: string
+      dni:
+        type: string
+      email:
+        type: string
+      fecha_nacimiento:
+        type: string
+      nombre:
+        type: string
+      obra_social:
+        type: string
+      telefono:
+        type: string
+    required:
+    - apellido
+    - dni
+    - fecha_nacimiento
+    - nombre
+    type: object
+  dto.CrearTurnoRequest:
+    properties:
+      fecha:
+        type: string
+      hora_inicio:
+        type: string
+    required:
+    - fecha
+    - hora_inicio
+    type: object
+  dto.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  dto.ReservarTurnoRequest:
+    properties:
+      paciente_id:
+        type: integer
+    required:
+    - paciente_id
+    type: object
+  dto.TurnoDisponibleResponse:
+    properties:
+      fecha:
+        type: string
+      hora_inicio:
+        type: string
+      id:
+        type: integer
+      medico_id:
+        type: integer
+    type: object
+  models.Agenda:
+    properties:
+      activo:
+        type: boolean
+      created_at:
+        type: string
+      dia_semana:
+        type: integer
+      duracion_turno:
+        type: integer
+      hora_fin:
+        type: string
+      hora_inicio:
+        type: string
+      id:
+        type: integer
+      medico_id:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  models.EstadoTurno:
+    enum:
+    - disponible
+    - reservado
+    - atendido
+    - no_asistio
+    type: string
+    x-enum-varnames:
+    - EstadoDisponible
+    - EstadoReservado
+    - EstadoAtendido
+    - EstadoNoAsistio
+  models.Medico:
+    properties:
+      activo:
+        type: boolean
+      apellido:
+        type: string
+      created_at:
+        type: string
+      email:
+        type: string
+      especialidad:
+        type: string
+      id:
+        type: integer
+      matricula:
+        type: string
+      nombre:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  models.Paciente:
+    properties:
+      activo:
+        type: boolean
+      apellido:
+        type: string
+      created_at:
+        type: string
+      direccion:
+        type: string
+      dni:
+        type: string
+      email:
+        type: string
+      fecha_nacimiento:
+        type: string
+      id:
+        type: integer
+      medico_tratante_id:
+        type: integer
+      nombre:
+        type: string
+      obra_social:
+        type: string
+      telefono:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  models.Turno:
+    properties:
+      agenda_id:
+        type: integer
+      created_at:
+        type: string
+      estado:
+        $ref: '#/definitions/models.EstadoTurno'
+      fecha:
+        type: string
+      hora_fin:
+        type: string
+      hora_inicio:
+        type: string
+      id:
+        type: integer
+      medico_id:
+        type: integer
+      paciente_id:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  pkg.APIResponse:
+    properties:
+      data: {}
+      error:
+        type: string
+      message:
+        type: string
+      success:
+        type: boolean
+    type: object
+info:
+  contact: {}
+  description: API REST para gestión de turnos médicos.
+  title: Turnos Médicos API
+  version: "1.0"
+paths:
+  /agendas/{id}:
+    get:
+      description: Obtiene una agenda por su ID
+      parameters:
+      - description: ID de la agenda
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Agenda'
+        "400":
+          description: ID inválido
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: No autenticado
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Sin permisos
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Agenda no encontrada
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Error interno
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Obtener agenda por ID
+      tags:
+      - Agendas
+  /agendas/medico/{medicoID}:
+    post:
+      consumes:
+      - application/json
+      description: Crea una agenda para un médico
+      parameters:
+      - description: ID del médico
+        in: path
+        name: medicoID
+        required: true
+        type: integer
+      - description: Datos de la agenda
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CrearAgendaRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Agenda'
+        "400":
+          description: Datos inválidos
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: No autenticado
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Sin permisos
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Médico no encontrado
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Error interno
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Crear agenda
+      tags:
+      - Agendas
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Autentica un usuario y devuelve un JWT
+      parameters:
+      - description: Credenciales de acceso
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login correcto
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Request inválido
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Credenciales inválidas
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Error interno
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Iniciar sesión
+      tags:
+      - Auth
+  /medicos:
+    get:
+      description: Lista todos los médicos activos o filtra por especialidad
+      parameters:
+      - description: Filtrar por especialidad
+        in: query
+        name: especialidad
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Medico'
+            type: array
+        "401":
+          description: No autenticado
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Sin permisos
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Error interno
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Listar médicos
+      tags:
+      - Medicos
+    post:
+      consumes:
+      - application/json
+      description: Crea un nuevo médico en el sistema
+      parameters:
+      - description: Datos del médico
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CrearMedicoRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Médico creado correctamente
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Datos inválidos, email o matrícula duplicada
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: No autenticado
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Sin permisos
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Error interno
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Crear médico
+      tags:
+      - Medicos
+  /medicos/{id}:
+    get:
+      description: Obtiene un médico por su ID
+      parameters:
+      - description: ID del médico
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Medico'
+        "400":
+          description: ID inválido
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: No autenticado
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Sin permisos
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Médico no encontrado
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Error interno
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Obtener médico por ID
+      tags:
+      - Medicos
+  /pacientes:
+    get:
+      description: Obtiene el listado de pacientes activos del sistema
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Paciente'
+            type: array
+        "401":
+          description: No autenticado
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Sin permisos
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Error interno
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Listar pacientes activos
+      tags:
+      - Pacientes
+    post:
+      consumes:
+      - application/json
+      description: Crea un nuevo paciente en el sistema
+      parameters:
+      - description: Datos del paciente
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CrearPacienteRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Paciente creado correctamente
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Datos inválidos o paciente duplicado
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: No autenticado
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Sin permisos
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Error interno
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Crear paciente
+      tags:
+      - Pacientes
+  /pacientes/{id}:
+    get:
+      description: Obtiene un paciente por su ID. Requiere autenticación.
+      parameters:
+      - description: ID del paciente
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Paciente obtenido correctamente
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: ID inválido
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: No autenticado
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Sin permisos
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Paciente no encontrado
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Error interno
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Obtener paciente por ID
+      tags:
+      - Pacientes
+  /turnos/{id}:
+    get:
+      description: Obtiene un turno específico por su ID
+      parameters:
+      - description: ID del turno
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/pkg.APIResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.Turno'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/pkg.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/pkg.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/pkg.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/pkg.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Obtener turno por ID
+      tags:
+      - Turnos
+  /turnos/{id}/atendido:
+    put:
+      description: Marca un turno reservado como atendido
+      parameters:
+      - description: ID del turno
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/pkg.APIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/pkg.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/pkg.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/pkg.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/pkg.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Marcar turno como atendido
+      tags:
+      - Turnos
+  /turnos/{id}/liberar:
+    put:
+      description: Libera un turno reservado y lo vuelve a dejar disponible
+      parameters:
+      - description: ID del turno
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/pkg.APIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/pkg.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/pkg.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/pkg.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/pkg.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Liberar turno
+      tags:
+      - Turnos
+  /turnos/{id}/no-asistio:
+    put:
+      description: Marca un turno reservado como no asistido por el paciente
+      parameters:
+      - description: ID del turno
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/pkg.APIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/pkg.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/pkg.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/pkg.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/pkg.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Marcar turno como no asistió
+      tags:
+      - Turnos
+  /turnos/{id}/reservar:
+    put:
+      consumes:
+      - application/json
+      description: Reserva un turno disponible para un paciente
+      parameters:
+      - description: ID del turno
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Datos de la reserva
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ReservarTurnoRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/pkg.APIResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/pkg.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/pkg.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/pkg.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/pkg.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Reservar turno
+      tags:
+      - Turnos
+  /turnos/agenda/{id}/crear:
+    post:
+      consumes:
+      - application/json
+      description: Crea un turno disponible dentro de una agenda
+      parameters:
+      - description: ID de la agenda
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Datos del turno
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CrearTurnoRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Turno'
+        "400":
+          description: Datos inválidos
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: No autenticado
+          schema:
+            additionalProperties: true
+            type: object
+        "403":
+          description: Sin permisos
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Agenda no encontrada
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Error interno
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Crear turno
+      tags:
+      - Turnos
+  /turnos/disponibles/{medicoID}:
+    get:
+      description: Obtiene todos los turnos disponibles de un médico
+      parameters:
+      - description: ID del médico
+        in: path
+        name: medicoID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/pkg.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/dto.TurnoDisponibleResponse'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/pkg.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/pkg.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/pkg.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/pkg.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Listar turnos disponibles
+      tags:
+      - Turnos
+  /turnos/medico/{medicoID}:
+    get:
+      description: listar turnos del médico
+      parameters:
+      - description: ID del médico
+        in: path
+        name: medicoID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/pkg.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.Turno'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/pkg.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/pkg.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/pkg.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/pkg.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Listar turnos por médico
+      tags:
+      - Turnos
+  /turnos/paciente/{pacienteID}:
+    get:
+      description: Obtiene todos los turnos asociados a un paciente
+      parameters:
+      - description: ID del paciente
+        in: path
+        name: pacienteID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/pkg.APIResponse'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.Turno'
+                  type: array
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/pkg.APIResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/pkg.APIResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/pkg.APIResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/pkg.APIResponse'
+      security:
+      - BearerAuth: []
+      summary: Listar turnos por paciente
+      tags:
+      - Turnos
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

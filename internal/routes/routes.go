@@ -6,9 +6,19 @@ import (
 	"turnos-medicos/internal/middleware"
 
 	"github.com/gin-gonic/gin"
+
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+
+	_ "turnos-medicos/docs"
 )
 
 func SetupRoutes(r *gin.Engine, h *bootstrap.Handlers) {
+
+	r.GET(
+		"/swagger/*any",
+		ginSwagger.WrapHandler(swaggerFiles.Handler),
+	)
 
 	v1 := r.Group("/api/v1")
 

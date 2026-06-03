@@ -19,6 +19,19 @@ func NewPacienteHandler(s services.PacienteService) *PacienteHandler {
 	return &PacienteHandler{service: s}
 }
 
+// @Summary Crear paciente
+// @Description Crea un nuevo paciente en el sistema
+// @Tags Pacientes
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param request body dto.CrearPacienteRequest true "Datos del paciente"
+// @Success 201 {object} map[string]interface{} "Paciente creado correctamente"
+// @Failure 400 {object} map[string]interface{} "Datos inválidos o paciente duplicado"
+// @Failure 401 {object} map[string]interface{} "No autenticado"
+// @Failure 403 {object} map[string]interface{} "Sin permisos"
+// @Failure 500 {object} map[string]interface{} "Error interno"
+// @Router /pacientes [post]
 func (h *PacienteHandler) CrearPaciente(c *gin.Context) {
 
 	var req dto.CrearPacienteRequest
@@ -47,6 +60,21 @@ func (h *PacienteHandler) CrearPaciente(c *gin.Context) {
 	pkg.Created(c, paciente, "Paciente creado correctamente")
 }
 
+// ObtenerPacientePorID godoc
+//
+// @Summary Obtener paciente por ID
+// @Description Obtiene un paciente por su ID. Requiere autenticación.
+// @Tags Pacientes
+// @Security BearerAuth
+// @Produce json
+// @Param id path int true "ID del paciente"
+// @Success 200 {object} map[string]interface{} "Paciente obtenido correctamente"
+// @Failure 400 {object} map[string]interface{} "ID inválido"
+// @Failure 401 {object} map[string]interface{} "No autenticado"
+// @Failure 403 {object} map[string]interface{} "Sin permisos"
+// @Failure 404 {object} map[string]interface{} "Paciente no encontrado"
+// @Failure 500 {object} map[string]interface{} "Error interno"
+// @Router /pacientes/{id} [get]
 func (h *PacienteHandler) ObtenerPacientePorID(c *gin.Context) {
 
 	id, err := pkg.ParseInt64Param(c, "id")
@@ -91,6 +119,18 @@ func (h *PacienteHandler) ObtenerPacientePorDNI(c *gin.Context) {
 	pkg.Success(c, paciente, "Paciente obtenido por DNI correctamente")
 }
 
+// ListarPacientesActivos godoc
+//
+// @Summary Listar pacientes activos
+// @Description Obtiene el listado de pacientes activos del sistema
+// @Tags Pacientes
+// @Security BearerAuth
+// @Produce json
+// @Success 200 {array} models.Paciente
+// @Failure 401 {object} map[string]interface{} "No autenticado"
+// @Failure 403 {object} map[string]interface{} "Sin permisos"
+// @Failure 500 {object} map[string]interface{} "Error interno"
+// @Router /pacientes [get]
 func (h *PacienteHandler) ListarPacientesActivos(c *gin.Context) {
 
 	authUserID := middleware.GetUserID(c)

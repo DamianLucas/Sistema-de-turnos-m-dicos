@@ -19,7 +19,30 @@ func NewTurnoHandler(service services.TurnoService) *TurnoHandler {
 	}
 }
 
+// CrearTurno godoc
+//
+// @Summary Crear turno
+// @Description Crea un turno disponible dentro de una agenda
+// @Tags Turnos
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param id path int true "ID de la agenda"
+// @Param request body dto.CrearTurnoRequest true "Datos del turno"
+// @Success 201 {object} models.Turno
+// @Failure 400 {object} map[string]interface{} "Datos inválidos"
+// @Failure 401 {object} map[string]interface{} "No autenticado"
+// @Failure 403 {object} map[string]interface{} "Sin permisos"
+// @Failure 404 {object} map[string]interface{} "Agenda no encontrada"
+// @Failure 500 {object} map[string]interface{} "Error interno"
+// @Router /turnos/agenda/{id}/crear [post]
 func (h *TurnoHandler) CrearTurno(c *gin.Context) {
+
+	agendaID, err := pkg.ParseInt64Param(c, "id")
+	if err != nil {
+		pkg.HandleError(c, err)
+		return
+	}
 
 	var req dto.CrearTurnoRequest
 
@@ -28,10 +51,7 @@ func (h *TurnoHandler) CrearTurno(c *gin.Context) {
 		return
 	}
 
-	turno, err := h.service.CrearTurno(
-		c.Request.Context(),
-		req,
-	)
+	turno, err := h.service.CrearTurno(c.Request.Context(), agendaID, req)
 	if err != nil {
 		pkg.HandleError(c, err)
 		return
@@ -40,6 +60,19 @@ func (h *TurnoHandler) CrearTurno(c *gin.Context) {
 	pkg.Created(c, turno, "Turno creado correctamente")
 }
 
+// ObtenerTurnoPorID godoc
+// @Summary Obtener turno por ID
+// @Description Obtiene un turno específico por su ID
+// @Tags Turnos
+// @Security BearerAuth
+// @Produce json
+// @Param id path int true "ID del turno"
+// @Success 200 {object} pkg.APIResponse{data=models.Turno}
+// @Failure 400 {object} pkg.APIResponse
+// @Failure 404 {object} pkg.APIResponse
+// @Failure 401 {object} pkg.APIResponse
+// @Failure 500 {object} pkg.APIResponse
+// @Router /turnos/{id} [get]
 func (h *TurnoHandler) ObtenerTurnoPorID(c *gin.Context) {
 	turnoID, err := pkg.ParseInt64Param(c, "id")
 	if err != nil {
@@ -60,6 +93,19 @@ func (h *TurnoHandler) ObtenerTurnoPorID(c *gin.Context) {
 	pkg.Success(c, turno, "Turno obtenido correctamente")
 }
 
+// ListarTurnosPorMedico godoc
+// @Summary Listar turnos por médico
+// @Description listar turnos del médico
+// @Tags Turnos
+// @Security BearerAuth
+// @Produce json
+// @Param medicoID path int true "ID del médico"
+// @Success 200 {object} pkg.APIResponse{data=[]models.Turno}
+// @Failure 400 {object} pkg.APIResponse
+// @Failure 404 {object} pkg.APIResponse
+// @Failure 401 {object} pkg.APIResponse
+// @Failure 500 {object} pkg.APIResponse
+// @Router /turnos/medico/{medicoID} [get]
 func (h *TurnoHandler) ListarTurnosPorMedico(c *gin.Context) {
 	medicoID, err := pkg.ParseInt64Param(c, "medicoID")
 	if err != nil {
@@ -84,6 +130,19 @@ func (h *TurnoHandler) ListarTurnosPorMedico(c *gin.Context) {
 	pkg.Success(c, turnos, "Turnos del medico obtenidos correctamente")
 }
 
+// ListarTurnosPorPaciente godoc
+// @Summary Listar turnos por paciente
+// @Description Obtiene todos los turnos asociados a un paciente
+// @Tags Turnos
+// @Security BearerAuth
+// @Produce json
+// @Param pacienteID path int true "ID del paciente"
+// @Success 200 {object} pkg.APIResponse{data=[]models.Turno}
+// @Failure 400 {object} pkg.APIResponse
+// @Failure 404 {object} pkg.APIResponse
+// @Failure 401 {object} pkg.APIResponse
+// @Failure 500 {object} pkg.APIResponse
+// @Router /turnos/paciente/{pacienteID} [get]
 func (h *TurnoHandler) ListarTurnosPorPaciente(c *gin.Context) {
 	pacienteID, err := pkg.ParseInt64Param(c, "pacienteID")
 	if err != nil {
@@ -100,6 +159,19 @@ func (h *TurnoHandler) ListarTurnosPorPaciente(c *gin.Context) {
 	pkg.Success(c, turnos, "Turnos del paciente obtenidos correctamente")
 }
 
+// ListarTurnosDisponibles godoc
+// @Summary Listar turnos disponibles
+// @Description Obtiene todos los turnos disponibles de un médico
+// @Tags Turnos
+// @Security BearerAuth
+// @Produce json
+// @Param medicoID path int true "ID del médico"
+// @Success 200 {object} pkg.APIResponse{data=[]dto.TurnoDisponibleResponse}
+// @Failure 400 {object} pkg.APIResponse
+// @Failure 404 {object} pkg.APIResponse
+// @Failure 401 {object} pkg.APIResponse
+// @Failure 500 {object} pkg.APIResponse
+// @Router /turnos/disponibles/{medicoID} [get]
 func (h *TurnoHandler) ListarTurnosDisponibles(c *gin.Context) {
 	medicoID, err := pkg.ParseInt64Param(c, "medicoID")
 	if err != nil {
@@ -117,6 +189,21 @@ func (h *TurnoHandler) ListarTurnosDisponibles(c *gin.Context) {
 
 }
 
+// ReservarTurno godoc
+// @Summary Reservar turno
+// @Description Reserva un turno disponible para un paciente
+// @Tags Turnos
+// @Security BearerAuth
+// @Accept json
+// @Produce json
+// @Param id path int true "ID del turno"
+// @Param request body dto.ReservarTurnoRequest true "Datos de la reserva"
+// @Success 200 {object} pkg.APIResponse
+// @Failure 400 {object} pkg.APIResponse
+// @Failure 404 {object} pkg.APIResponse
+// @Failure 401 {object} pkg.APIResponse
+// @Failure 500 {object} pkg.APIResponse
+// @Router /turnos/{id}/reservar [put]
 func (h *TurnoHandler) ReservarTurno(c *gin.Context) {
 	turnoID, err := pkg.ParseInt64Param(c, "id")
 	if err != nil {
@@ -139,6 +226,19 @@ func (h *TurnoHandler) ReservarTurno(c *gin.Context) {
 	pkg.Success(c, nil, "Turno reservado correctamente")
 }
 
+// LiberarTurno godoc
+// @Summary Liberar turno
+// @Description Libera un turno reservado y lo vuelve a dejar disponible
+// @Tags Turnos
+// @Security BearerAuth
+// @Produce json
+// @Param id path int true "ID del turno"
+// @Success 200 {object} pkg.APIResponse
+// @Failure 400 {object} pkg.APIResponse
+// @Failure 404 {object} pkg.APIResponse
+// @Failure 401 {object} pkg.APIResponse
+// @Failure 500 {object} pkg.APIResponse
+// @Router /turnos/{id}/liberar [put]
 func (h *TurnoHandler) LiberarTurno(c *gin.Context) {
 	turnoID, err := pkg.ParseInt64Param(c, "id")
 	if err != nil {
@@ -156,6 +256,18 @@ func (h *TurnoHandler) LiberarTurno(c *gin.Context) {
 	pkg.Success(c, nil, "Turno liberado correctamente")
 }
 
+// @Summary Marcar turno como atendido
+// @Description Marca un turno reservado como atendido
+// @Tags Turnos
+// @Security BearerAuth
+// @Produce json
+// @Param id path int true "ID del turno"
+// @Success 200 {object} pkg.APIResponse
+// @Failure 400 {object} pkg.APIResponse
+// @Failure 404 {object} pkg.APIResponse
+// @Failure 401 {object} pkg.APIResponse
+// @Failure 500 {object} pkg.APIResponse
+// @Router /turnos/{id}/atendido [put]
 func (h *TurnoHandler) MarcarTurnoAtendido(c *gin.Context) {
 	turnoID, err := pkg.ParseInt64Param(c, "id")
 	if err != nil {
@@ -177,6 +289,19 @@ func (h *TurnoHandler) MarcarTurnoAtendido(c *gin.Context) {
 
 }
 
+// MarcarTurnoNoAsistio godoc
+// @Summary Marcar turno como no asistió
+// @Description Marca un turno reservado como no asistido por el paciente
+// @Tags Turnos
+// @Security BearerAuth
+// @Produce json
+// @Param id path int true "ID del turno"
+// @Success 200 {object} pkg.APIResponse
+// @Failure 400 {object} pkg.APIResponse
+// @Failure 404 {object} pkg.APIResponse
+// @Failure 401 {object} pkg.APIResponse
+// @Failure 500 {object} pkg.APIResponse
+// @Router /turnos/{id}/no-asistio [put]
 func (h *TurnoHandler) MarcarTurnoNoAsistio(c *gin.Context) {
 	turnoID, err := pkg.ParseInt64Param(c, "id")
 	if err != nil {
