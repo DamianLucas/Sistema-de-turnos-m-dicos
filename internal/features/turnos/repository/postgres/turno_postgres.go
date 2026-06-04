@@ -3,8 +3,12 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
+	"strings"
 	"turnos-medicos/internal/features/turnos/models"
 	"turnos-medicos/internal/pkg"
+
+	"github.com/lib/pq"
 )
 
 type TurnoPostgresRepository struct {
@@ -49,6 +53,18 @@ func (r *TurnoPostgresRepository) CrearTurno(ctx context.Context, turno *models.
 	)
 
 	if err != nil {
+
+		var pqErr *pq.Error
+
+		if errors.As(err, &pqErr) && pqErr.Code == "23505" {
+
+			if strings.Contains(
+				pqErr.Constraint,
+				"uq_turnos_medico_fecha_hora",
+			) {
+				return pkg.ErrTurnoDuplicado
+			}
+		}
 		return err
 	}
 

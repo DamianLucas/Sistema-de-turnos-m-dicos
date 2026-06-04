@@ -34,6 +34,7 @@ func NewTurnoHandler(service services.TurnoService) *TurnoHandler {
 // @Failure 401 {object} map[string]interface{} "No autenticado"
 // @Failure 403 {object} map[string]interface{} "Sin permisos"
 // @Failure 404 {object} map[string]interface{} "Agenda no encontrada"
+// @Failure 409 {object} map[string]interface{} "Ya existe un turno para ese horario"
 // @Failure 500 {object} map[string]interface{} "Error interno"
 // @Router /turnos/agenda/{id}/crear [post]
 func (h *TurnoHandler) CrearTurno(c *gin.Context) {

@@ -859,6 +859,11 @@ paths:
           schema:
             additionalProperties: true
             type: object
+        "409":
+          description: Ya existe un turno para ese horario
+          schema:
+            additionalProperties: true
+            type: object
         "500":
           description: Error interno
           schema:

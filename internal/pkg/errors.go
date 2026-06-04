@@ -168,4 +168,9 @@ var (
 	ErrHorarioFueraAgenda = NewBadRequestError(
 		"horario fuera de agenda",
 	)
+
+	// CONFLICT
+	ErrTurnoDuplicado = NewConflictError(
+		"ya existe un turno para ese horario",
+	)
 )
